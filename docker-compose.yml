@@ -1,0 +1,12 @@
+version: "1.0"
+
+services:
+  app:
+    build: ./docker
+    image: hosj03/docker-app
+    ports:
+      - "80"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+volumes:
+  docker_app:
