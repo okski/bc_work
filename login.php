@@ -6,7 +6,13 @@ require_once __DIR__ . '/inc/user.php';
 
 if (!empty($_SESSION['UserId'])){
     //uživatel už je přihlášený, nemá smysl, aby se přihlašoval znovu
-    header('Location: index.php');
+    if (isset($_SESSION['rdrurl'])) {
+        $rdrurl = $_SESSION['rdrurl'];
+        unset($_SESSION['rdrurl']);
+        header('Location: ' . $rdrurl);
+    } else {
+        header('Location: /');
+    }
     exit();
 }
 
@@ -31,7 +37,13 @@ if (!empty($_POST)) {
 ////            $forgottenDeleteQuery=$db->prepare('DELETE FROM hosj03.forgotten_passwords WHERE UserId=:user;');
 ////            $forgottenDeleteQuery->execute([':user'=>$user['UserId']]);
 //
-            header('Location: index.php');
+            if (isset($_SESSION['rdrurl'])) {
+                $rdrurl = $_SESSION['rdrurl'];
+                unset($_SESSION['rdrurl']);
+                header('Location: ' . $rdrurl);
+            } else {
+                header('Location: /');
+            }
             exit();
         } else {
             $errors = true;

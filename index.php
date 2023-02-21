@@ -1,10 +1,9 @@
 <?php
-
-spl_autoload('my_autoloader');
-//require_once __WEBROOT__ . '/includes/safestring.class.php';
+//spl_autoload('my_autoloader');
 
 session_start();
-//session_destroy();
+
+$_SESSION['rdrurl'] = $_SERVER['REQUEST_URI'];
 
 require_once __DIR__ . '/inc/user.php';
 

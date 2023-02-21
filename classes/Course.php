@@ -8,20 +8,20 @@ class Course {
     private string $year;
     private string $semester;
 
-    private Seminar $Seminar;
+    private int $seminarId;
 
     /**
      * @param string $ident
      * @param string $year
      * @param string $semester
-     * @param array $seminar
+     * @param int $seminar
      */
-    public function __construct(string $ident, string $year, string $semester, array $seminar)
+    public function __construct(string $ident, string $year, string $semester, int $seminar)
     {
         $this->ident = $ident;
         $this->year = $year;
         $this->semester = $semester;
-        $this->Seminar = new Seminar($seminar);
+        $this->seminarId = $seminar;
 
     }
 
@@ -50,33 +50,25 @@ class Course {
     }
 
     /**
-     * @return Seminar
+     * @return int
      */
-    public function getSeminar(): Seminar
+    public function getSeminar(): int
     {
-        return $this->Seminar;
+        return $this->seminarId;
     }
-
-
 
     public function __toString()
     {
-        $seminarId = $this->Seminar->getSeminarId();
-//        <div class="ident">' . $this->ident . '</div>
+        $link =  "seminar/" . $this->seminarId;
+
         $result = '<div class="course">';
         $result = $result . '<div class="year">' . $this->year . '</div>';
-//        $result = $result . '<div class="semester">' . $this->semester . '</div>
-//        <a href="../seminar.php?id=' . $seminarId . '">' . $this->ident . '</a>';
-//        $result = $result . '</form></div>';
         $result = $result . '<div class="semester">' . $this->semester . '</div>
-        <form action="/seminar.php">
-        <input type="hidden" name="SeminarId" value="' . $seminarId . '">
-        <input type="submit" value="' . $this->ident . '">';
+        <a href="/' . $link . '">' . $this->ident . '</a>';
         $result = $result . '</form></div>';
 
 
         return $result;
     }
-
 
 }

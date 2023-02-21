@@ -10,4 +10,4 @@ if (!empty($_SESSION['UserId'])){
 }
 
 //přesměrujeme uživatele na homepage
-header('Location: index.php');
+header('Location: /');

@@ -4,6 +4,7 @@ echo '<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <title id="title">Bachelor\'s work of hosj03</title>
+    <link rel="stylesheet" href="/resources/main.css">
 </head>
 <body>';
 

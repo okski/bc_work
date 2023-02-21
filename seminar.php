@@ -1,37 +1,62 @@
 <?php
-require_once __DIR__.'/classes/Course.php';
+require_once __DIR__.'/classes/Seminar.php';
+require_once __DIR__ . '/inc/db.php';
 
 session_start();
-//$seminarsDataQuery = $db->prepare('SELECT BcWork.SeminarStudent.StudentId, BcWork.Seminar.* from BcWork.SeminarStudent INNER JOIN BcWork.Seminar ON BcWork.SeminarStudent.SeminarId=BcWork.Seminar.SeminarId AND StudentId=:id;');
-//
-//$seminarsDataQuery->execute([
-//    ':id'=>$_SESSION['UserId']
-//]);
-//
-//$seminarsData = $seminarsDataQuery->fetchAll();
-//
-//var_dump($seminarsData);
-//
-//$seminars = array();
+
+$_SESSION['rdrurl'] = $_SERVER['REQUEST_URI'];
+
+if (empty($_SESSION['UserId'])){
+    //uživatel už je přihlášený, nemá smysl, aby se přihlašoval znovu
+    header('Location: login.php');
+    exit();
+}
+
+include __DIR__ . '/inc/header.php';
 
 $seminar = null;
 
+$courseDataQuery = $db->prepare('SELECT Course.Ident, TeachedCourse.Year, TeachedCourse.Semester, Seminar.SeminarId
+from Seminar INNER JOIN TeachedCourse ON TeachedCourse.TeachedCourseId=Seminar.TeachedCourseId AND 
+Seminar.SeminarId=:SeminarId INNER JOIN Course ON Course.CourseId=TeachedCourse.CourseId LIMIT 1;');
 
-foreach ($_SESSION['courses'] as $course) {
-    if (!is_null($course->getSeminar())) {
-        if ($course->getSeminar()->getSeminarId() == $_GET['SeminarId']) {
-            $seminar = $course->getSeminar();
-        }
-    }
+$courseDataQuery->execute([
+    ':SeminarId' => $_GET["SeminarId"]
+]);
 
+$courseData = $courseDataQuery->fetchAll(PDO::FETCH_ASSOC);
+
+
+$homeworksDataQuery = $db->prepare('SELECT Homework.* FROM SeminarHomework INNER JOIN Homework ON
+        SeminarHomework.HomeworkId=Homework.HomeworkId AND SeminarHomework.SeminarId=:SeminarId;');
+
+$homeworksDataQuery->execute([
+    ':SeminarId' => $_GET["SeminarId"]
+]);
+
+$homeworksData = $homeworksDataQuery->fetchAll(PDO::FETCH_ASSOC);
+
+
+if (!empty($courseData)) {
+    $seminar = new classes\Seminar(array("SeminarId" => $_GET["SeminarId"], "homeworks" => $homeworksData));
 }
 
-if (!is_null($seminar) && !empty($seminar->getHomeworks())) {
-    foreach ($seminar->getHomeworks() as $homework) {
-        if (!is_null($homework)) {
-            print($homework);
-        }
-    }
-} else {
-    echo '<h1>This seminar does not exist or does not have any homeworks.</h1>';
+if (is_null($seminar)) {
+    header('Location: /error/404.html');
+    exit();
 }
+
+echo '<div class="breadcrumb_div">
+            <div class="breadcrumbPath">
+                <a href="/">Home</a>
+                <p class="arrow">→</p>
+            </div>
+            <div class="breadcrumbPath">
+                <p>Seminar (' . htmlspecialchars($_GET["SeminarId"]) . ')</p>
+            </div>
+    </div>';
+
+echo "<div>" . htmlspecialchars($courseData["ident"]) . "</div>";
+print($seminar);
+
+include __DIR__ . '/inc/footer.php';

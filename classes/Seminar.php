@@ -10,7 +10,7 @@ class Seminar {
 
     public function __construct(array $data) {
         $this->SeminarId = $data['SeminarId'];
-        $this->initializeHomeworks();
+        $this->initializeHomeworks($data["homeworks"]);
     }
 
     /**
@@ -31,18 +31,7 @@ class Seminar {
 
 
 
-    private function initializeHomeworks() {
-        require __DIR__ . '/../inc/db.php';
-
-        $homeworksDataQuery = $db->prepare('SELECT Homework.* FROM SeminarHomework INNER JOIN Homework ON
-        SeminarHomework.HomeworkId=Homework.HomeworkId AND SeminarHomework.SeminarId=:SeminarId;');
-
-        $homeworksDataQuery->execute([
-            ':SeminarId' => $this->SeminarId
-        ]);
-
-        $homeworksData = $homeworksDataQuery->fetchAll(\PDO::FETCH_ASSOC);
-
+    private function initializeHomeworks($homeworksData) {
         if (!empty($homeworksData)) {
             foreach ($homeworksData as $homeworkData) {
                 $homework = new Homework($homeworkData);
@@ -51,15 +40,27 @@ class Seminar {
         }
     }
 
-    public function __toString()
-    {
-        $result = $this->SeminarId;
-        foreach ($this->Homeworks as $homework) {
-            $result = $result . $homework;
-        }
-        ;
+    public function __toString() {
+        $result = "<div class='homeworks'>";
+        $result = $result . $this->toStringHomeworks();
+        $result = $result . "</div>";
+
         return $result;
     }
 
+    private function toStringHomeworks(): string
+    {
+        $result = "";
+        if (!empty(($this->Homeworks))) {
+            foreach ($this->Homeworks as $homework) {
+                if (!is_null($homework)) {
+                    $result = $result . $homework->__toString();
+                }
+            }
+        } else {
+            echo '<div>This seminar does not have any homeworks.</div>';
+        }
 
+        return $result;
+    }
 }
