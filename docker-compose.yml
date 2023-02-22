@@ -3,7 +3,7 @@ version: "1.0"
 services:
   app:
     build: ./docker
-    image: hosj03/docker-app
+    image: hosj03/docker-app:latest
     ports:
       - "80"
     extra_hosts:

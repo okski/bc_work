@@ -41,7 +41,7 @@ if ($_FILES["myfile"] != null) {
       echo "it worked";
 
       $curlCommand = "curl localhost:" . $containerPort;
-      var_dump($curlCommand);
+//      var_dump($curlCommand);
 
       shell_exec($curlCommand);
     }
