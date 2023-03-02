@@ -9,7 +9,7 @@ require_once __DIR__ . '/inc/user.php';
 
 if (empty($_SESSION['UserId'])){
     //uživatel už je přihlášený, nemá smysl, aby se přihlašoval znovu
-    header('Location: login');
+    header('Location: /login');
     exit();
 }
 

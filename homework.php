@@ -8,13 +8,9 @@ $_SESSION['rdrurl'] = $_SERVER['REQUEST_URI'];
 
 if (empty($_SESSION['UserId'])){
     //uživatel už je přihlášený, nemá smysl, aby se přihlašoval znovu
-    header('Location: login');
+    header('Location: /login');
     exit();
 }
-
-
-
-
 
 include __DIR__ . '/inc/header.php';
 
@@ -46,11 +42,14 @@ if ($_FILES["myfile"] != null) {
     $fileName = $_FILES["myfile"]["tmp_name"];
 //    var_dump($_FILES["myfile"]);
 //    var_dump($fileName);
-    $tempFile = tmpfile();
-    fwrite($tempFile, $homework->getMarking());
+    $tempMarkingFile = tmpfile();
+    $tempDataFile = tmpfile();
+
+    fwrite($tempMarkingFile, $homework->getMarking());
+    fwrite($tempDataFile, $_SESSION['UserId'].":".$homework->getHomeworkId());
 
 
-    shell_exec("docker pull hosj03/docker-app:latest");
+    shell_exec("docker pull hosj03/docker-app:latest -q");
 
     $composeString = "docker compose -p " . $_SESSION['UserId'] . " up -d --quiet-pull --force-recreate 2>&1";
     $compose = shell_exec($composeString);
@@ -71,14 +70,18 @@ if ($_FILES["myfile"] != null) {
 //    docker cp  ~/Desktop/filename.txt container-id:/path/filename.txt
 
     $dockerCopyCommandRunFile = "docker cp " . $fileName . " " . $containerID . ":/var/www/html/test.java 2>&1";
-    $dockerCopyCommandMarkingFile = "docker cp " . stream_get_meta_data($tempFile)["uri"] . " " . $containerID . ":/var/www/html/marking.json 2>&1";
+    $dockerCopyCommandMarkingFile = "docker cp " . stream_get_meta_data($tempMarkingFile)["uri"] . " " . $containerID . ":/var/www/html/marking.json 2>&1";
+    $dockerCopyCommandDataFile = "docker cp " . stream_get_meta_data($tempDataFile)["uri"] . " " . $containerID . ":/var/www/html/data 2>&1";
 
-    fclose($tempFile);
 //    var_dump($dockerCopyCommand);
 
-    $dockerCopy = shell_exec($dockerCopyCommandRunFile);
-    $dockerCopy = shell_exec($dockerCopyCommandMarkingFile);
+    shell_exec($dockerCopyCommandRunFile);
+    shell_exec($dockerCopyCommandMarkingFile);
+    shell_exec($dockerCopyCommandDataFile);
 //    echo $dockerCopy;
+
+    fclose($tempMarkingFile);
+    fclose($tempDataFile);
 
     $systemUser = shell_exec('docker container ls 2>&1');
     echo $systemUser;
@@ -115,7 +118,7 @@ echo '<div class="breadcrumb_div">
 $homework->printHomework();
 
 echo '<form id="uploadbanner" enctype="multipart/form-data" method="post" action="#">
-        <input id="fileupload" name="myfile" type="file" />
+        <input id="fileupload" name="myfile" type="file" required />
         <input type="submit" value="submit" id="submit" />
     </form>';
 

@@ -1,5 +1,3 @@
-# Ukázka omezení přístupu
-
 Order deny, allow
 
 # zakázání přístupu všem

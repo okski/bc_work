@@ -8,7 +8,7 @@ $_SESSION['rdrurl'] = $_SERVER['REQUEST_URI'];
 
 if (empty($_SESSION['UserId'])){
     //uživatel už je přihlášený, nemá smysl, aby se přihlašoval znovu
-    header('Location: login');
+    header('Location: /login');
     exit();
 }
 

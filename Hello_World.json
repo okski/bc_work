@@ -1,0 +1,8 @@
+{
+  "maximum": 1,
+  "marking": [
+    {"text": "Hello World!",
+      "weight": "1"
+    }
+  ]
+}
