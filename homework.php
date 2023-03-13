@@ -15,10 +15,9 @@ if (empty($_SESSION['UserId'])){
 include __DIR__ . '/inc/header.php';
 
 $homework = null;
+$submmitedHomeworks = null;
 
-
-$homeworkDataQuery = $db->prepare('SELECT Homework.* FROM Homework WHERE HomeworkId=:HomeworkId LIMIT 1;');
-
+$homeworkDataQuery = $db->prepare('SELECT * FROM Homework WHERE HomeworkId=:HomeworkId LIMIT 1;');
 
 $homeworkDataQuery->execute([
     ':HomeworkId' => $_GET["HomeworkId"]
@@ -29,10 +28,19 @@ if (!empty($homeworkData)) {
     $homework = new \classes\Homework($homeworkData);
 }
 
-
 if (is_null($homework)) {
     header('Location: /error/404.html');
 }
+
+$submittedHomeworksDataQuery = $db->prepare('SELECT SubmittedHomework.* FROM SubmittedHomework WHERE HomeworkId=:HomeworkId AND StudentId=:StudentId ORDER BY DateTime;');
+
+$submittedHomeworksDataQuery->execute([
+    ':HomeworkId' => $homework->getHomeworkId(),
+    ':StudentId' => $_SESSION['UserId']
+]);
+
+$submittedHomeworksData = $submittedHomeworksDataQuery->fetchAll(PDO::FETCH_ASSOC);
+
 
 /**
  * File handling with creation of docker container
@@ -51,12 +59,12 @@ if ($_FILES["myfile"] != null) {
 
     shell_exec("docker pull hosj03/docker-app:latest -q");
 
-    $composeString = "docker compose -p " . $_SESSION['UserId'] . " up -d --quiet-pull --force-recreate 2>&1";
+    $composeString = "docker compose -p " . $_SESSION['UserId'] . "-" . $homework->getHomeworkId() . " up -d --quiet-pull --force-recreate 2>&1";
     $compose = shell_exec($composeString);
 //    echo $compose;
 //
 //    docker container ls --filter name=localwebdev-app-1 | awk '/localwebdev-app-1/ {print $1}'
-    $containerID = shell_exec("docker container ls --all --quiet --filter name=" . $_SESSION['UserId'] . "-app-1");
+    $containerID = shell_exec("docker container ls --all --quiet --filter name=" . $_SESSION['UserId'] . "-" . $homework->getHomeworkId() . "-app-1");
 
     $containerID = substr($containerID, 0, 12);
 
@@ -84,20 +92,15 @@ if ($_FILES["myfile"] != null) {
     fclose($tempDataFile);
 
     $systemUser = shell_exec('docker container ls 2>&1');
-    echo $systemUser;
 
-    if (strpos($systemUser, $_SESSION['UserId']) !== false) {
-        echo "it worked";
+    if (strpos($systemUser, $_SESSION['UserId']. "-" . $homework->getHomeworkId()  . "-app" ) !== false) {
 
         $curlCommand = "curl localhost:" . $containerPort;
 //      var_dump($curlCommand);
 
         shell_exec($curlCommand);
     }
-    echo '</pre>';
-
-
-
+    header('Location: ' . $_SERVER['REQUEST_URI']);
 }
 
 
@@ -122,4 +125,26 @@ echo '<form id="uploadbanner" enctype="multipart/form-data" method="post" action
         <input type="submit" value="submit" id="submit" />
     </form>';
 
+echo '<div class="submittedHomeworks">';
+
+printSubmittedHomeworks($submittedHomeworksData);
+
+echo '</div>';
 include __DIR__ . '/inc/footer.php';
+
+
+function printSubmittedHomeworks($submittedHomeworksData) {
+    foreach ($submittedHomeworksData as $submittedHomeworkData) {
+        $tmpDownloadFile = tmpfile();
+        fwrite($tmpDownloadFile, $submittedHomeworkData["SubmittedFile"]);
+
+//        var_dump($submittedHomeworkData);
+
+        echo '<div class="submittedHomework">';
+        echo '<div class="submittedHomeworkTime">' . $submittedHomeworkData["DateTime"] . '</div>';
+        echo '<div class="submittedHomeworkResult">' . $submittedHomeworkData["Result"] . '</div>';
+        echo "<button type='submit' onclick='window.open(\"/download.php?fileId=" . $submittedHomeworkData["SubmittedHomeworkId"] . "\");'>Download</button><br>";
+        echo '</div>';
+//        fclose($tmpDownloadFile);
+    }
+}
