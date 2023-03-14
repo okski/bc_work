@@ -1,4 +1,4 @@
-version: "1.0"
+version: "3.8"
 
 services:
   app:
@@ -8,5 +8,14 @@ services:
       - "80"
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.15'
+          memory: 128M
+    stop_grace_period: 30s
 volumes:
   docker_app:

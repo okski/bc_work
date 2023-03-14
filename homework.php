@@ -32,7 +32,7 @@ if (is_null($homework)) {
     header('Location: /error/404.html');
 }
 
-$submittedHomeworksDataQuery = $db->prepare('SELECT SubmittedHomework.* FROM SubmittedHomework WHERE HomeworkId=:HomeworkId AND StudentId=:StudentId ORDER BY DateTime;');
+$submittedHomeworksDataQuery = $db->prepare('SELECT SubmittedHomework.* FROM SubmittedHomework WHERE HomeworkId=:HomeworkId AND StudentId=:StudentId ORDER BY DateTime DESC;');
 
 $submittedHomeworksDataQuery->execute([
     ':HomeworkId' => $homework->getHomeworkId(),
@@ -57,7 +57,7 @@ if ($_FILES["myfile"] != null) {
     fwrite($tempDataFile, $_SESSION['UserId'].":".$homework->getHomeworkId());
 
 
-    shell_exec("docker pull hosj03/docker-app:latest -q");
+    shell_exec("docker pull hosj03/docker-app:latest -q && docker system prune -f");
 
     $composeString = "docker compose -p " . $_SESSION['UserId'] . "-" . $homework->getHomeworkId() . " up -d --quiet-pull --force-recreate 2>&1";
     $compose = shell_exec($composeString);
@@ -81,12 +81,10 @@ if ($_FILES["myfile"] != null) {
     $dockerCopyCommandMarkingFile = "docker cp " . stream_get_meta_data($tempMarkingFile)["uri"] . " " . $containerID . ":/var/www/html/marking.json 2>&1";
     $dockerCopyCommandDataFile = "docker cp " . stream_get_meta_data($tempDataFile)["uri"] . " " . $containerID . ":/var/www/html/data 2>&1";
 
-//    var_dump($dockerCopyCommand);
 
     shell_exec($dockerCopyCommandRunFile);
     shell_exec($dockerCopyCommandMarkingFile);
     shell_exec($dockerCopyCommandDataFile);
-//    echo $dockerCopy;
 
     fclose($tempMarkingFile);
     fclose($tempDataFile);
@@ -95,10 +93,12 @@ if ($_FILES["myfile"] != null) {
 
     if (strpos($systemUser, $_SESSION['UserId']. "-" . $homework->getHomeworkId()  . "-app" ) !== false) {
 
-        $curlCommand = "curl localhost:" . $containerPort;
-//      var_dump($curlCommand);
+        $curlCommand = "curl --max-time 1 localhost:" . $containerPort;
+        $stopCommand = "docker stop " . $containerID . " > /dev/null &";
+
 
         shell_exec($curlCommand);
+        exec($stopCommand);
     }
     header('Location: ' . $_SERVER['REQUEST_URI']);
 }
