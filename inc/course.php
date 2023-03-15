@@ -24,5 +24,3 @@ if (!empty($coursesData)) {
         print($course);
     }
 }
-
-$_SESSION['courses'] = $courses;

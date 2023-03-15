@@ -16,13 +16,18 @@ include __DIR__ . '/inc/header.php';
 
 $seminar = null;
 
-$courseDataQuery = $db->prepare('SELECT Course.Ident, TeachedCourse.Year, TeachedCourse.Semester, Seminar.SeminarId
+$courseDataQuery = $db->prepare('SELECT Course.Ident, TeachedCourse.Year, TeachedCourse.Semester, Seminar.SeminarId, Seminar.TimeStart, Seminar.TimeEnd, Seminar.Day
 from Seminar INNER JOIN TeachedCourse ON TeachedCourse.TeachedCourseId=Seminar.TeachedCourseId AND 
 Seminar.SeminarId=:SeminarId INNER JOIN Course ON Course.CourseId=TeachedCourse.CourseId LIMIT 1;');
 
 $courseDataQuery->execute([
     ':SeminarId' => $_GET["SeminarId"]
 ]);
+
+if ($courseDataQuery->rowCount()!=1) {
+    header('Location: /error/404');
+    exit();
+}
 
 $courseData = $courseDataQuery->fetchAll(PDO::FETCH_ASSOC);
 
@@ -42,9 +47,13 @@ if (!empty($courseData)) {
 }
 
 if (is_null($seminar)) {
-    header('Location: /error/404.html');
+    header('Location: /error/404');
     exit();
 }
+
+//$seminarBreadCrumb = 'Seminar of '  . $courseData[0]["Ident"] . ' (' . date_format(date_create($courseData[0]["TimeStart"]),"H:i") . '-' . date_format(date_create($courseData[0]["TimeEnd"]),"H:i") . ' on ' . date_format(date_create($courseData[0]["Day"]), "l") . ")";
+//$_SESSION["seminarBreadCrumb"] = $seminarBreadCrumb;
+//$seminarBreadCrumb
 
 echo '<div class="breadcrumb_div">
             <div class="breadcrumbPath">
@@ -52,7 +61,7 @@ echo '<div class="breadcrumb_div">
                 <p class="arrow">→</p>
             </div>
             <div class="breadcrumbPath">
-                <p>Seminar (' . htmlspecialchars($_GET["SeminarId"]) . ')</p>
+                <p> ' . 'Seminar (' . htmlspecialchars($_GET["SeminarId"]) . ')' . '</p>
             </div>
     </div>';
 

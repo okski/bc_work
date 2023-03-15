@@ -29,7 +29,7 @@ if (!empty($homeworkData)) {
 }
 
 if (is_null($homework)) {
-    header('Location: /error/404.html');
+    header('Location: /error/404');
 }
 
 $submittedHomeworksDataQuery = $db->prepare('SELECT SubmittedHomework.* FROM SubmittedHomework WHERE HomeworkId=:HomeworkId AND StudentId=:StudentId ORDER BY DateTime DESC;');
@@ -77,14 +77,16 @@ if ($_FILES["myfile"] != null) {
 
 //    docker cp  ~/Desktop/filename.txt container-id:/path/filename.txt
 
-    $dockerCopyCommandRunFile = "docker cp " . $fileName . " " . $containerID . ":/var/www/html/test.java 2>&1";
-    $dockerCopyCommandMarkingFile = "docker cp " . stream_get_meta_data($tempMarkingFile)["uri"] . " " . $containerID . ":/var/www/html/marking.json 2>&1";
-    $dockerCopyCommandDataFile = "docker cp " . stream_get_meta_data($tempDataFile)["uri"] . " " . $containerID . ":/var/www/html/data 2>&1";
+    $dockerCopyCommandRunFile = "docker cp " . $fileName . " " . $containerID . ":/home/user/test.java 2>&1";
+    $dockerCopyCommandMarkingFile = "docker cp " . stream_get_meta_data($tempMarkingFile)["uri"] . " " . $containerID . ":/home/user/marking.json 2>&1";
+    $dockerCopyCommandDataFile = "docker cp " . stream_get_meta_data($tempDataFile)["uri"] . " " . $containerID . ":/home/user/data 2>&1";
+    $changeOwnershipCommand = "\"chown -R user:www-data /home/user && chmod -R u-rw,g+rw /home/user && chmod u+rwx /home/user/test.java\"";
 
 
     shell_exec($dockerCopyCommandRunFile);
     shell_exec($dockerCopyCommandMarkingFile);
     shell_exec($dockerCopyCommandDataFile);
+    shell_exec("docker exec " . $containerID . " sh -c " . $changeOwnershipCommand);
 
     fclose($tempMarkingFile);
     fclose($tempDataFile);
@@ -98,7 +100,7 @@ if ($_FILES["myfile"] != null) {
 
 
         shell_exec($curlCommand);
-        exec($stopCommand);
+//        shell_exec($stopCommand);
     }
     header('Location: ' . $_SERVER['REQUEST_URI']);
 }
@@ -110,7 +112,15 @@ echo '<div class="breadcrumb_div">
             <p class="arrow">→</p>
         </div>
         <div class="breadcrumbPath">
-            <a href="/seminar/' . htmlspecialchars($_GET["SeminarId"]) . '">Seminar (' . htmlspecialchars($_GET["SeminarId"]) . ')</a>
+            <a href="/seminar/' . htmlspecialchars($_GET["SeminarId"]) . '">';
+
+if(isset($_SESSION["seminarBreadCrumb"])) {
+    echo $_SESSION["seminarBreadCrumb"];
+} else {
+    echo 'Seminar (' . htmlspecialchars($_GET["SeminarId"]) . ')';
+}
+
+echo '</a>
             <p class="arrow">→</p>
         </div>
         <div class="breadcrumbPath">

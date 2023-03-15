@@ -31,7 +31,9 @@ if (!empty($_POST)) {
             $_SESSION['UserId'] = $user['UserId'];
             $_SESSION['FirstName'] = $user['FirstName'];
             $_SESSION['LastName'] = $user['LastName'];
-//            $_SESSION['Admin'] = $user['Admin'];
+            $_SESSION['Student'] = $user['Student'];
+            $_SESSION['Teacher'] = $user['Teacher'];
+            $_SESSION['Admin'] = $user['Admin'];
 //
 //            //smažeme požadavky na obnovu hesla
 ////            $forgottenDeleteQuery=$db->prepare('DELETE FROM hosj03.forgotten_passwords WHERE UserId=:user;');
