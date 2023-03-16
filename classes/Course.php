@@ -7,22 +7,23 @@ class Course {
     private string $ident;
     private string $year;
     private string $semester;
-
     private int $seminarId;
+    private int $GuarantorId;
 
     /**
      * @param string $ident
      * @param string $year
      * @param string $semester
-     * @param int $seminar
+     * @param string|null $seminar
+     * @param string|null $GuarantorId
      */
-    public function __construct(string $ident, string $year, string $semester, int $seminar)
+    public function __construct(string $ident, string $year, string $semester, string $seminar = null, string $GuarantorId = null)
     {
         $this->ident = $ident;
         $this->year = $year;
         $this->semester = $semester;
-        $this->seminarId = $seminar;
-
+        $this->seminarId = (int)$seminar;
+        $this->GuarantorId = (int)$GuarantorId;
     }
 
     /**
@@ -61,14 +62,15 @@ class Course {
     {
         $link =  "seminar/" . $this->seminarId;
 
-        $result = '<div class="course">';
-        $result = $result . '<div class="year">' . $this->year . '</div>';
-        $result = $result . '<div class="semester">' . $this->semester . '</div>
-        <a href="/' . $link . '">' . $this->ident . '</a>';
-        $result = $result . '</form></div>';
+        $result = '<div class="seminar">';
 
+        if ($this->GuarantorId != (int)$_SESSION['UserId']) {
+            $result = $result . '<a href="/' . $link . '">' . $this->ident . '</a>';
+        } else {
+            $result = $result . '<a href="/' . $link .'/' . $this->GuarantorId . '">' . $this->ident . '</a>';
+        }
 
-        return $result;
+        return $result . '</div>';
     }
 
 }

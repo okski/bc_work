@@ -15,13 +15,28 @@ if (empty($_SESSION['UserId'])){
 include __DIR__ . '/inc/header.php';
 
 $seminar = null;
+$queryString = '';
 
-$courseDataQuery = $db->prepare('SELECT Course.Ident, TeachedCourse.Year, TeachedCourse.Semester, Seminar.SeminarId, Seminar.TimeStart, Seminar.TimeEnd, Seminar.Day
+if (isset($_SESSION["Student"]) && $_SESSION["Student"] == 1) {
+    if (isset($_GET["GuarantorId"]) && !empty($_GET["GuarantorId"])) {
+        header('Location: /error/404');
+        exit();
+    }
+    $queryString = 'SELECT Course.Ident, TeachedCourse.Year, TeachedCourse.Semester, Seminar.SeminarId, Seminar.TimeStart, Seminar.TimeEnd, Seminar.Day
 from Seminar INNER JOIN TeachedCourse ON TeachedCourse.TeachedCourseId=Seminar.TeachedCourseId AND 
-Seminar.SeminarId=:SeminarId INNER JOIN Course ON Course.CourseId=TeachedCourse.CourseId LIMIT 1;');
+Seminar.SeminarId=:SeminarId INNER JOIN Course ON Course.CourseId=TeachedCourse.CourseId INNER JOIN SeminarStudent
+ON SeminarStudent.SeminarId=Seminar.SeminarId AND SeminarStudent.StudentId=:UserId LIMIT 1;';
+} elseif(isset($_SESSION["Teacher"]) && $_SESSION["Teacher"] == 1) {
+    $queryString = 'SELECT Course.Ident, TeachedCourse.Year, TeachedCourse.Semester, Seminar.SeminarId, Seminar.TimeStart, Seminar.TimeEnd, Seminar.Day
+from Seminar INNER JOIN TeachedCourse ON TeachedCourse.TeachedCourseId=Seminar.TeachedCourseId AND 
+Seminar.SeminarId=:SeminarId AND Seminar.TeacherId=:UserId INNER JOIN Course ON Course.CourseId=TeachedCourse.CourseId LIMIT 1;';
+}
+
+$courseDataQuery = $db->prepare($queryString);
 
 $courseDataQuery->execute([
-    ':SeminarId' => $_GET["SeminarId"]
+    ':SeminarId' => $_GET["SeminarId"],
+    ':UserId' => $_SESSION["UserId"]
 ]);
 
 if ($courseDataQuery->rowCount()!=1) {

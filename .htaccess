@@ -2,7 +2,7 @@ RewriteEngine On
 
 
 RewriteRule ^$ index.php
-RewriteRule ^seminar\/([0-9]+)$ seminar.php?SeminarId=$1
-RewriteRule ^seminar\/([0-9]+)\/homework\/([0-9]+)$ homework.php?SeminarId=$1&HomeworkId=$2
+RewriteRule ^seminar\/([0-9]+)(\/[0-9]+)?$ seminar.php?SeminarId=$1&GuarantorId=$2
+RewriteRule ^seminar\/([0-9]+)(\/[0-9]+)?\/homework\/([0-9]+)$ homework.php?SeminarId=$1&GuarantorId=$2&HomeworkId=$3
 RewriteRule ^login$ login.php
 RewriteRule ^error/([0-9]{3})$ error/$1.html
