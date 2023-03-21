@@ -12,11 +12,14 @@ class Homework {
 
     private $Marking;
 
+    private $Visible;
+
     public function __construct(array $data) {
         $this->HomeworkId = $data['HomeworkId'];
         $this->Name = $data['Name'];
         $this->Description = $data['Description'];
         $this->Marking = $data['Marking'];
+        $this->Visible = $data['Visible'];
     }
 
     /**
@@ -50,6 +53,16 @@ class Homework {
     {
         return $this->Marking;
     }
+
+    /**
+     * @return mixed
+     */
+    public function getVisible()
+    {
+        return $this->Visible;
+    }
+
+
 
 
 

@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__.'/classes/Seminar.php';
+require_once __DIR__ . '/classes/Seminar.php';
 require_once __DIR__ . '/inc/db.php';
 
 session_start();
@@ -30,6 +30,9 @@ ON SeminarStudent.SeminarId=Seminar.SeminarId AND SeminarStudent.StudentId=:User
     $queryString = 'SELECT Course.Ident, TeachedCourse.Year, TeachedCourse.Semester, Seminar.SeminarId, Seminar.TimeStart, Seminar.TimeEnd, Seminar.Day
 from Seminar INNER JOIN TeachedCourse ON TeachedCourse.TeachedCourseId=Seminar.TeachedCourseId AND 
 Seminar.SeminarId=:SeminarId AND Seminar.TeacherId=:UserId INNER JOIN Course ON Course.CourseId=TeachedCourse.CourseId LIMIT 1;';
+} else {
+    header('Location: /error/404');
+    exit();
 }
 
 $courseDataQuery = $db->prepare($queryString);
@@ -47,7 +50,7 @@ if ($courseDataQuery->rowCount()!=1) {
 $courseData = $courseDataQuery->fetchAll(PDO::FETCH_ASSOC);
 
 
-$homeworksDataQuery = $db->prepare('SELECT Homework.* FROM SeminarHomework INNER JOIN Homework ON
+$homeworksDataQuery = $db->prepare('SELECT Homework.*, SeminarHomework.Visible FROM SeminarHomework INNER JOIN Homework ON
         SeminarHomework.HomeworkId=Homework.HomeworkId AND SeminarHomework.SeminarId=:SeminarId;');
 
 $homeworksDataQuery->execute([
@@ -55,7 +58,6 @@ $homeworksDataQuery->execute([
 ]);
 
 $homeworksData = $homeworksDataQuery->fetchAll(PDO::FETCH_ASSOC);
-
 
 if (!empty($courseData)) {
     $seminar = new classes\Seminar(array("SeminarId" => $_GET["SeminarId"], "homeworks" => $homeworksData));

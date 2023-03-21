@@ -16,7 +16,7 @@ if (empty($_SESSION['UserId'])){
 
 include __DIR__ . '/inc/header.php';
 
-include __DIR__ . '/inc/course.php';
+include __DIR__ . '/inc/main.php';
 
 include __DIR__ . '/inc/footer.php';
 

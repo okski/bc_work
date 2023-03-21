@@ -51,11 +51,19 @@ class Seminar {
     private function toStringHomeworks(): string
     {
         $result = "";
-        if (!empty(($this->Homeworks))) {
+        if (!empty($this->Homeworks)) {
+            $visibleCounter = 0;
             foreach ($this->Homeworks as $homework) {
                 if (!is_null($homework)) {
-                    $result = $result . $homework->__toString();
+                    if ($homework->getVisible()) {
+                        $result = $result . $homework->__toString();
+                    } else {
+                        $visibleCounter++;
+                    }
                 }
+            }
+            if ($visibleCounter == count($this->Homeworks)) {
+                echo '<div>This seminar does not have any homeworks.</div>';
             }
         } else {
             echo '<div>This seminar does not have any homeworks.</div>';

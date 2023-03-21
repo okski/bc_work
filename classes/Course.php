@@ -58,17 +58,31 @@ class Course {
         return $this->seminarId;
     }
 
+    /**
+     * @return int
+     */
+    public function getSeminarId(): int
+    {
+        return $this->seminarId;
+    }
+
+    /**
+     * @return int
+     */
+    public function getGuarantorId(): int
+    {
+        return $this->GuarantorId;
+    }
+
+
+
     public function __toString()
     {
         $link =  "seminar/" . $this->seminarId;
 
         $result = '<div class="seminar">';
 
-        if ($this->GuarantorId != (int)$_SESSION['UserId']) {
-            $result = $result . '<a href="/' . $link . '">' . $this->ident . '</a>';
-        } else {
-            $result = $result . '<a href="/' . $link .'/' . $this->GuarantorId . '">' . $this->ident . '</a>';
-        }
+        $result = $result . '<a href="/' . $link . '">' . $this->ident . '</a>';
 
         return $result . '</div>';
     }
