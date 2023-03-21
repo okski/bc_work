@@ -28,25 +28,27 @@ Course.CourseId=TeachedCourse.CourseId WHERE TeachedCourse.Year=:Year AND Teache
 
 $courseDataQuery = $db->prepare($querySting);
 
-//$courseDataQuery->execute([
-//    ':Year' => $_GET['Year'],
-//    ':Semester' => $_GET['Semester'],
-//    ':Ident' => $_GET['Ident'],
-//    ':UserId' => $_SESSION['UserId']
-//]);
+$courseDataQuery->execute([
+    ':Year' => $_GET['Year'].'/'.(substr($_GET['Year'], 2, 2) +1),
+    ':Semester' => $_GET['Semester'],
+    ':Ident' => $_GET['Ident'],
+    ':UserId' => $_SESSION['UserId']
+]);
 
-$courseDataQuery->bindParam(':UserId', $_SESSION['UserId'], PDO::PARAM_INT);
-$courseDataQuery->bindParam(':Year', $_GET['Year'], PDO::PARAM_INT);
-$courseDataQuery->bindParam(':Semester', $_GET['Semester'], PDO::PARAM_STR);
-$courseDataQuery->bindParam(':Ident', $_GET['Ident'], PDO::PARAM_STR);
-$courseDataQuery->execute();
-
-if ($courseDataQuery->rowCount()!=1) {
-    header('Location: /error/404');
-    exit();
-}
+//$courseDataQuery->bindParam(':UserId', $_SESSION['UserId'], PDO::PARAM_INT);
+//$courseDataQuery->bindParam(':Year', $_GET['Year'], PDO::PARAM_INT);
+//$courseDataQuery->bindParam(':Semester', $_GET['Semester'], PDO::PARAM_STR);
+//$courseDataQuery->bindParam(':Ident', $_GET['Ident'], PDO::PARAM_STR);
+//$courseDataQuery->execute();
+//
+//if ($courseDataQuery->rowCount()!=1) {
+//    header('Location: /error/404');
+//    exit();
+//}
 
 $courseData = $courseDataQuery->fetch(PDO::FETCH_ASSOC);
+
+var_dump($courseData);
 
 echo '<div class="breadcrumb_div">
             <div class="breadcrumbPath">
@@ -54,7 +56,7 @@ echo '<div class="breadcrumb_div">
                 <p class="arrow">→</p>
             </div>
             <div class="breadcrumbPath">
-                <p> ' . 'Course (' . htmlspecialchars($courseData['Ident']). ' in ' . htmlspecialchars($courseData['Semester']) . ' in ' . htmlspecialchars($courseData['Year']) . '/' . htmlspecialchars(substr($courseData['Year'], 2, 2) + 1) . ')' . '</p>
+                <p> ' . 'Course (' . htmlspecialchars($courseData['Ident']). ' in ' . htmlspecialchars($courseData['Semester']) . ' in ' . htmlspecialchars($courseData['Year']) . ')' . '</p>
             </div>
     </div>';
 
