@@ -4,7 +4,7 @@ require_once __DIR__ . '/inc/db.php';
 
 session_start();
 
-$error = array();
+$errors = array();
 
 $_SESSION['rdrurl'] = $_SERVER['REQUEST_URI'];
 
@@ -17,14 +17,13 @@ if (empty($_SESSION['UserId'])){
 include __DIR__ . '/inc/header.php';
 
 $querySting = "";
-//
-if(isset($_SESSION["Teacher"]) && $_SESSION["Teacher"] == 1) {
-    $querySting = 'SELECT Course.Ident, TeachedCourse.Year, TeachedCourse.Semester, TeachedCourse.Guarantor FROM TeachedCourse INNER JOIN Course ON
-Course.CourseId=TeachedCourse.CourseId WHERE TeachedCourse.Year=:Year AND TeachedCourse.Semester=:Semester AND Course.Ident=:Ident AND TeachedCourse.Guarantor=:UserId LIMIT 1;';
-} else {
+
+if(!isset($_SESSION["Teacher"]) || $_SESSION["Teacher"] != 1) {
     header('Location: /error/404');
     exit();
 }
+$querySting = 'SELECT Course.Ident, TeachedCourse.TeachedCourseId, TeachedCourse.Year, TeachedCourse.Semester, TeachedCourse.Guarantor FROM TeachedCourse INNER JOIN Course ON
+Course.CourseId=TeachedCourse.CourseId WHERE TeachedCourse.Year=:Year AND TeachedCourse.Semester=:Semester AND Course.Ident=:Ident AND TeachedCourse.Guarantor=:UserId LIMIT 1;';
 
 $courseDataQuery = $db->prepare($querySting);
 
@@ -35,32 +34,83 @@ $courseDataQuery->execute([
     ':UserId' => $_SESSION['UserId']
 ]);
 
-//$courseDataQuery->bindParam(':UserId', $_SESSION['UserId'], PDO::PARAM_INT);
-//$courseDataQuery->bindParam(':Year', $_GET['Year'], PDO::PARAM_INT);
-//$courseDataQuery->bindParam(':Semester', $_GET['Semester'], PDO::PARAM_STR);
-//$courseDataQuery->bindParam(':Ident', $_GET['Ident'], PDO::PARAM_STR);
-//$courseDataQuery->execute();
-//
-//if ($courseDataQuery->rowCount()!=1) {
-//    header('Location: /error/404');
-//    exit();
-//}
+if ($courseDataQuery->rowCount()!=1) {
+    header('Location: /error/404');
+    exit();
+}
 
 $courseData = $courseDataQuery->fetch(PDO::FETCH_ASSOC);
 
-var_dump($courseData);
+$seminarsQuery = $db->prepare('SELECT SeminarId FROM Seminar WHERE TeachedCourseId=:TeachedCourseId;');
 
-echo '<div class="breadcrumb_div">
-            <div class="breadcrumbPath">
-                <a href="/">Home</a>
-                <p class="arrow">→</p>
-            </div>
-            <div class="breadcrumbPath">
-                <p> ' . 'Course (' . htmlspecialchars($courseData['Ident']). ' in ' . htmlspecialchars($courseData['Semester']) . ' in ' . htmlspecialchars($courseData['Year']) . ')' . '</p>
-            </div>
-    </div>';
+$seminarsQuery->execute([
+    ':TeachedCourseId' => $courseData['TeachedCourseId']
+]);
+
+$seminars = $seminarsQuery->fetchAll(PDO::FETCH_ASSOC);
+
+if (!empty($_POST)) {
+    if (isset($_POST['addHomework']) && $_POST['addHomework'] = 'true') {
+        if (empty(trim($_POST['Name']))) {
+            $errors['Name'] = 'You have to set some name of homework.';
+        }
+        if (empty(trim($_POST['Description']))) {
+            $errors['Description'] = 'You have to set some description of homework.';
+        }
+        if (empty(trim($_POST['Marking']))) {
+            $errors['Marking'] = 'You have to set some marking for homework.';
+        }
+//        var_dump(array($_POST['Name'],$_POST['Description'], $_POST['Marking'], $_SESSION['UserId'], $_POST['InputFile']) );
+        if (empty($errors)) {
+            $db->beginTransaction();
+            $saveHomeworkQuery = $db->prepare('INSERT INTO Homework (Name, Description, Marking, AddedBy, InputFile, General)
+                                VALUES (:Name, :Description, :Marking, :AddedBy, :InputFile, 1);');
+            $saveHomeworkQuery->execute([
+                ':Name' => $_POST['Name'],
+                ':Description' => $_POST['Description'],
+                ':Marking' => $_POST['Marking'],
+                ':AddedBy' => $_SESSION['UserId'],
+                ':InputFile' => $_POST['InputFile']
+            ]);
+
+            $homeworkId = $db->lastInsertId();
+
+            $visibility = 0;
+
+            if ($_POST['Visibility'] != null) {
+                $visibility = $_POST['Visibility'];
+            }
+
+            foreach ($seminars as $seminar) {
+                $saveSeminarHomeworkQuery = $db->prepare('INSERT INTO SeminarHomework (SeminarId, HomeworkId, Visible)
+                                            VALUES (:SeminarId, :HomeworkId, :Visible);');
+                $saveSeminarHomeworkQuery->execute([
+                    ':SeminarId' => $seminar['SeminarId'],
+                    ':HomeworkId' => $homeworkId,
+                    ':Visible' =>  $visibility
+                ]);
+            }
+
+            $db->commit();
+
+            unset($_POST['addHomework']);
+//            header('Location: ' . $_SESSION['rdrurl']);
+        }
+    }
+}
 
 ?>
+<div class="breadcrumb_div">
+    <div class="breadcrumbPath">
+        <a href="/">Home</a>
+        <p class="arrow">→</p>
+    </div>
+    <div class="breadcrumbPath">
+        <p>Course (<?php echo htmlspecialchars($courseData['Ident']). ' in ' . htmlspecialchars($courseData['Semester']) . ' in ' . htmlspecialchars($courseData['Year']) ?>)</p>
+    </div>
+</div>
+
+
 <div class="checkbox_box">
     <div class="field">
         <label for="homework">Add homework</label>
@@ -107,4 +157,29 @@ echo '<div class="breadcrumb_div">
 <div>list of homeworks</div>
 
 <?php
+$values = array_map('array_pop', $seminars);
+$imploded = implode(',', $values);
+
+$homeworksQuery = $db->prepare('SELECT Homework.* FROM SeminarHomework JOIN Seminar ON
+    Seminar.SeminarId=SeminarHomework.SeminarId JOIN Homework ON
+    Homework.HomeworkId=SeminarHomework.HomeworkId WHERE Seminar.SeminarId IN (\'' . $imploded . '\') AND Homework.AddedBy=:UserId AND Homework.General=1;');
+
+$homeworksQuery->execute([
+    ':UserId' => $_SESSION['UserId']
+]);
+
+$homeworksData = $homeworksQuery->fetchAll(PDO::FETCH_ASSOC);
+echo '<div class="homeworks">';
+foreach ($homeworksData as $homeworkData) {
+    var_dump($homeworkData);
+    echo '<div class="homework">
+<div class="name">' . htmlspecialchars($homeworkData['Name']) . '</div>
+<div class="shortDescription">' . htmlspecialchars(substr($homeworkData['Description'], 0, 25)) . '</div>
+<form action="'.$_SESSION['rdrurl'].'/edit" method="post">
+<input type="hidden" name="HomeworkId" id="HomeworkId" value="' . $homeworkData['HomeworkId'] . '">
+<button type="submit">Edit</button>
+</form>
+</div>';
+}
+echo '</div>';
 include __DIR__ . '/inc/footer.php';
