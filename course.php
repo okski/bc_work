@@ -62,6 +62,7 @@ if (!empty($_POST)) {
         }
 //        var_dump(array($_POST['Name'],$_POST['Description'], $_POST['Marking'], $_SESSION['UserId'], $_POST['InputFile']) );
         if (empty($errors)) {
+            $visible = 0;
             $db->beginTransaction();
             $saveHomeworkQuery = $db->prepare('INSERT INTO Homework (Name, Description, Marking, AddedBy, InputFile, General)
                                 VALUES (:Name, :Description, :Marking, :AddedBy, :InputFile, 1);');
@@ -75,10 +76,8 @@ if (!empty($_POST)) {
 
             $homeworkId = $db->lastInsertId();
 
-            $visibility = 0;
-
-            if ($_POST['Visibility'] != null) {
-                $visibility = $_POST['Visibility'];
+            if (isset($_POST['Visible']) && $_POST['Visible'] == 'true') {
+                $visible = 1;
             }
 
             foreach ($seminars as $seminar) {
@@ -87,14 +86,14 @@ if (!empty($_POST)) {
                 $saveSeminarHomeworkQuery->execute([
                     ':SeminarId' => $seminar['SeminarId'],
                     ':HomeworkId' => $homeworkId,
-                    ':Visible' =>  $visibility
+                    ':Visible' =>  $visible
                 ]);
             }
 
             $db->commit();
 
             unset($_POST['addHomework']);
-//            header('Location: ' . $_SESSION['rdrurl']);
+            header('Location: ' . $_SESSION['rdrurl']);
         }
     }
 }
@@ -115,11 +114,11 @@ if (!empty($_POST)) {
     <div class="field">
         <label for="homework">Add homework</label>
         <input type="checkbox" id="homework" class="homework clickableBox" >
-        <div id="homeworkSubMenu" style="display: block">
+        <div id="homeworkSubMenu" style="display: none">
             <form method="post">
                 <div class="field">
                     <label for="Name">Name: </label>
-                    <input type="text" name="Name" id="Name" placeholder="ex. Hello World!" pattern="^\S+(\s)?\S*$" onkeypress="this.style.width = ((this.value.length + 1) * 8) + 'px';" required>
+                    <input type="text" name="Name" id="Name" placeholder="ex. Hello World!" pattern="^\S+(\s)?\S*$" required>
                 </div>
                 <div class="field">
                     <label for="Description" >Description:</label>
@@ -145,8 +144,8 @@ if (!empty($_POST)) {
                     <input type="file" name="Stdin" id="Stdin">
                 </div>
                 <div class="field">
-                    <label for="Visibility">Visibility: </label>
-                    <input type="checkbox" name="Visibility" id="Visibility" value="true" >
+                    <label for="Visible">Visibility: </label>
+                    <input type="checkbox" name="Visible" id="Visible" value="true" >
                 </div>
                 <button type="submit" name="addHomework" value="true" >Add homework</button>
             </form>
@@ -169,9 +168,13 @@ $homeworksQuery->execute([
 ]);
 
 $homeworksData = $homeworksQuery->fetchAll(PDO::FETCH_ASSOC);
+
+if (empty($homeworksData)) {
+    echo 'There are no homeworks.';
+}
+
 echo '<div class="homeworks">';
 foreach ($homeworksData as $homeworkData) {
-    var_dump($homeworkData);
     echo '<div class="homework">
 <div class="name">' . htmlspecialchars($homeworkData['Name']) . '</div>
 <div class="shortDescription">' . htmlspecialchars(substr($homeworkData['Description'], 0, 25)) . '</div>
@@ -181,5 +184,6 @@ foreach ($homeworksData as $homeworkData) {
 </form>
 </div>';
 }
+
 echo '</div>';
 include __DIR__ . '/inc/footer.php';

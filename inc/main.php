@@ -2,21 +2,21 @@
 require_once __DIR__ . '/../classes/Course.php';
 require_once __DIR__ . '/db.php';
 
-$querySting = "";
+$queryString = "";
 
 if (isset($_SESSION["Student"]) && $_SESSION["Student"] == 1) {
-    $querySting = 'SELECT Course.Ident, TeachedCourse.Year, TeachedCourse.Semester, Seminar.SeminarId, TeachedCourse.Guarantor FROM SeminarStudent INNER JOIN Seminar ON 
+    $queryString = 'SELECT Course.Ident, TeachedCourse.Year, TeachedCourse.Semester, Seminar.SeminarId, TeachedCourse.Guarantor FROM SeminarStudent INNER JOIN Seminar ON 
 SeminarStudent.SeminarId=Seminar.SeminarId AND StudentId=:UserId INNER JOIN TeachedCourse ON 
 TeachedCourse.TeachedCourseId=Seminar.TeachedCourseId INNER JOIN Course ON
 Course.CourseId=TeachedCourse.CourseId ORDER BY TeachedCourse.Year, TeachedCourse.Semester DESC;';
 } elseif(isset($_SESSION["Teacher"]) && $_SESSION["Teacher"] == 1) {
-    $querySting = 'SELECT Course.Ident, TeachedCourse.Year, TeachedCourse.Semester, Seminar.SeminarId, TeachedCourse.Guarantor FROM TeachedCourse INNER JOIN Course ON
+    $queryString = 'SELECT Course.Ident, TeachedCourse.Year, TeachedCourse.Semester, Seminar.SeminarId, TeachedCourse.Guarantor FROM TeachedCourse INNER JOIN Course ON
 Course.CourseId=TeachedCourse.CourseId LEFT JOIN Seminar ON
 Seminar.TeachedCourseId=TeachedCourse.TeachedCourseId WHERE Seminar.TeacherId=:UserId OR TeachedCourse.Guarantor=:UserId
-ORDER BY TeachedCourse.Year, TeachedCourse.Semester DESC;';
+ORDER BY TeachedCourse.Year, TeachedCourse.Semester DESC, FIELD(Day, \'Mon\', \'Tue\', \'Wed\', \'Thu\', \'Fri\', \'Sat\', \'Sun\'), TimeStart;';
 }
 
-$coursesDataQuery = $db->prepare($querySting);
+$coursesDataQuery = $db->prepare($queryString);
 
 $coursesDataQuery->execute([
     ':UserId' => $_SESSION['UserId']
@@ -39,7 +39,7 @@ if (!empty($coursesData)) {
             foreach ($semesterCourses as $ident => $identCourses) {
                 $link = $link . $ident;
                 if (isset($_SESSION["Student"]) && $_SESSION["Student"] == 1) {
-                    print($identCourses[0]);
+                    echo $identCourses[0]->toString('Student');
                 }elseif (isset($_SESSION["Teacher"]) && $_SESSION["Teacher"] == 1) {
                     echo '<div class="course clickable" id="'.$ident.'"><div class="">' . $ident . '</div><div class="seminars" style="display: none;">';
                     if (!is_null($identCourses[0]->getGuarantorId()) && $identCourses[0]->getGuarantorId() == $_SESSION['UserId']) {
@@ -47,7 +47,7 @@ if (!empty($coursesData)) {
                     }
                     foreach ($identCourses as $course) {
                         if ($course->getSeminarId() != 0) {
-                            print($course);
+                            echo $course->toString('Teacher', $db);
                         }
                     }
                     echo '</div></div>';

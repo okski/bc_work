@@ -1,7 +1,6 @@
 <?php
 namespace classes;
-
-require_once __DIR__ . '/Seminar.php';
+//require_once __DIR__ . '/Seminar.php';
 
 class Course {
     private string $ident;
@@ -76,15 +75,28 @@ class Course {
 
 
 
-    public function __toString()
+    public function toString($role, $db = null): string
     {
         $link =  "seminar/" . $this->seminarId;
-
         $result = '<div class="seminar">';
 
-        $result = $result . '<a href="/' . $link . '">' . $this->ident . '</a>';
+        if ($role == 'Student') {
+
+            $result = $result . '<a href="/' . $link . '">' . $this->ident . '</a>';
+
+            return $result . '</div>';
+        }
+
+        $seminarQuery = $db->prepare('SELECT * FROM Seminar WHERE SeminarId=:SeminarId;');
+        $seminarQuery->execute([
+            ':SeminarId' => $this->seminarId
+        ]);
+        $seminarData = $seminarQuery->fetch(\PDO::FETCH_ASSOC);
+
+        $result = $result . '<a href="/'. $link .'">Seminar (' . date_format(date_create($seminarData["TimeStart"]),"H:i") . '-' . date_format(date_create($seminarData["TimeEnd"]),"H:i") . ' on ' . date_format(date_create($seminarData["Day"]), "l") . ')</a>';
 
         return $result . '</div>';
+
     }
 
 }
