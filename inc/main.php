@@ -5,12 +5,12 @@ require_once __DIR__ . '/db.php';
 $queryString = "";
 
 if (isset($_SESSION["Student"]) && $_SESSION["Student"] == 1) {
-    $queryString = 'SELECT Course.Ident, TeachedCourse.Year, TeachedCourse.Semester, Seminar.SeminarId, TeachedCourse.Guarantor FROM SeminarStudent INNER JOIN Seminar ON 
+    $queryString = 'SELECT Course.Ident, TeachedCourse.Year, TeachedCourse.Semester, Seminar.*, TeachedCourse.Guarantor FROM SeminarStudent INNER JOIN Seminar ON 
 SeminarStudent.SeminarId=Seminar.SeminarId AND StudentId=:UserId INNER JOIN TeachedCourse ON 
 TeachedCourse.TeachedCourseId=Seminar.TeachedCourseId INNER JOIN Course ON
 Course.CourseId=TeachedCourse.CourseId ORDER BY TeachedCourse.Year, TeachedCourse.Semester DESC;';
 } elseif(isset($_SESSION["Teacher"]) && $_SESSION["Teacher"] == 1) {
-    $queryString = 'SELECT Course.Ident, TeachedCourse.Year, TeachedCourse.Semester, Seminar.SeminarId, TeachedCourse.Guarantor FROM TeachedCourse INNER JOIN Course ON
+    $queryString = 'SELECT Course.Ident, TeachedCourse.Year, TeachedCourse.Semester, Seminar.*, TeachedCourse.Guarantor FROM TeachedCourse INNER JOIN Course ON
 Course.CourseId=TeachedCourse.CourseId LEFT JOIN Seminar ON
 Seminar.TeachedCourseId=TeachedCourse.TeachedCourseId WHERE Seminar.TeacherId=:UserId OR TeachedCourse.Guarantor=:UserId
 ORDER BY TeachedCourse.Year, TeachedCourse.Semester DESC, FIELD(Day, \'Mon\', \'Tue\', \'Wed\', \'Thu\', \'Fri\', \'Sat\', \'Sun\'), TimeStart;';
@@ -28,7 +28,8 @@ $courses = array();
 echo '<div class="courses">';
 if (!empty($coursesData)) {
     foreach ($coursesData as $courseData) {
-        $courses[$courseData['Year']][$courseData['Semester']][$courseData['Ident']][] = new classes\Course($courseData['Ident'], $courseData['Year'], $courseData['Semester'], $courseData['SeminarId'], $courseData['Guarantor']);
+        $seminarArr = array("SeminarId" => $courseData["SeminarId"], 'Day' => $courseData['Day'], 'TimeStart' => $courseData['TimeStart'], 'TimeEnd' => $courseData['TimeEnd'], "homeworks" => null);
+        $courses[$courseData['Year']][$courseData['Semester']][$courseData['Ident']][] = new classes\Course($courseData['Ident'], $courseData['Year'], $courseData['Semester'], $seminarArr, $courseData['Guarantor']);
     }
     foreach ($courses as $year => $yearCourses) {
         $link = substr($year, 0, 4) . '/';
@@ -46,8 +47,8 @@ if (!empty($coursesData)) {
                         echo '<a href="/course/' . $link  . '">as Guarantor</a>';
                     }
                     foreach ($identCourses as $course) {
-                        if ($course->getSeminarId() != 0) {
-                            echo $course->toString('Teacher', $db);
+                        if ($course->getSeminar()->getSeminarId() != 0) {
+                            echo $course->toString('Teacher');
                         }
                     }
                     echo '</div></div>';

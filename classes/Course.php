@@ -1,27 +1,27 @@
 <?php
 namespace classes;
-//require_once __DIR__ . '/Seminar.php';
+require_once __DIR__ . '/Seminar.php';
 
 class Course {
     private string $ident;
     private string $year;
     private string $semester;
-    private int $seminarId;
+    private Seminar $seminar;
     private int $GuarantorId;
 
     /**
      * @param string $ident
      * @param string $year
      * @param string $semester
-     * @param string|null $seminar
+     * @param array|null $seminar
      * @param string|null $GuarantorId
      */
-    public function __construct(string $ident, string $year, string $semester, string $seminar = null, string $GuarantorId = null)
+    public function __construct(string $ident, string $year, string $semester, array $seminar = null, string $GuarantorId = null)
     {
         $this->ident = $ident;
         $this->year = $year;
         $this->semester = $semester;
-        $this->seminarId = (int)$seminar;
+        $this->seminar = new Seminar($seminar);
         $this->GuarantorId = (int)$GuarantorId;
     }
 
@@ -50,19 +50,11 @@ class Course {
     }
 
     /**
-     * @return int
+     * @return Seminar
      */
-    public function getSeminar(): int
+    public function getSeminar(): Seminar
     {
-        return $this->seminarId;
-    }
-
-    /**
-     * @return int
-     */
-    public function getSeminarId(): int
-    {
-        return $this->seminarId;
+        return $this->seminar;
     }
 
     /**
@@ -75,9 +67,10 @@ class Course {
 
 
 
-    public function toString($role, $db = null): string
+    public function toString($role): string
     {
-        $link =  "seminar/" . $this->seminarId;
+        $seminar = $this->getSeminar();
+        $link =  "seminar/" . $seminar->getSeminarId();
         $result = '<div class="seminar">';
 
         if ($role == 'Student') {
@@ -87,13 +80,7 @@ class Course {
             return $result . '</div>';
         }
 
-        $seminarQuery = $db->prepare('SELECT * FROM Seminar WHERE SeminarId=:SeminarId;');
-        $seminarQuery->execute([
-            ':SeminarId' => $this->seminarId
-        ]);
-        $seminarData = $seminarQuery->fetch(\PDO::FETCH_ASSOC);
-
-        $result = $result . '<a href="/'. $link .'">Seminar (' . date_format(date_create($seminarData["TimeStart"]),"H:i") . '-' . date_format(date_create($seminarData["TimeEnd"]),"H:i") . ' on ' . date_format(date_create($seminarData["Day"]), "l") . ')</a>';
+        $result = $result . '<a href="/'. $link .'">Seminar (' . date_format(date_create($seminar->getTimeStart()),"H:i") . '-' . date_format(date_create($seminar->getTimeEnd()),"H:i") . ' on ' . date_format(date_create($seminar->getDay()), "l") . ')</a>';
 
         return $result . '</div>';
 

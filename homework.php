@@ -27,7 +27,6 @@ $homeworkData = $homeworkDataQuery->fetch(PDO::FETCH_ASSOC);
 if (!empty($homeworkData)) {
     $homework = new \classes\Homework($homeworkData);
 }
-
 if (is_null($homework)) {
     header('Location: /error/404');
 }

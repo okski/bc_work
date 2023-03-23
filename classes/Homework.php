@@ -10,16 +10,17 @@ class Homework {
 
     private string $Description;
 
-    private $Marking;
+    private string $Marking;
 
-    private $Visible;
+    private int $Visible;
 
     public function __construct(array $data) {
-        $this->HomeworkId = $data['HomeworkId'];
-        $this->Name = $data['Name'];
-        $this->Description = $data['Description'];
-        $this->Marking = $data['Marking'];
-        $this->Visible = $data['Visible'];
+            $this->HomeworkId = $data['HomeworkId'];
+            $this->Name = $data['Name'];
+            $this->Description = $data['Description'];
+            $this->Marking = $data['Marking'];
+            $this->Visible = (int)$data['Visible'];
+
     }
 
     /**
@@ -47,17 +48,17 @@ class Homework {
     }
 
     /**
-     * @return mixed
+     * @return string
      */
-    public function getMarking()
+    public function getMarking(): string
     {
         return $this->Marking;
     }
 
     /**
-     * @return mixed
+     * @return int
      */
-    public function getVisible()
+    public function getVisible(): int
     {
         return $this->Visible;
     }

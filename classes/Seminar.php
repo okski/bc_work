@@ -6,11 +6,25 @@ require_once __DIR__ . '/Homework.php';
 class Seminar {
 
     private int $SeminarId;
+    private string $day;
+    private string $timeStart;
+    private string $timeEnd;
     private array $Homeworks = array();
 
     public function __construct(array $data) {
-        $this->SeminarId = $data['SeminarId'];
-        $this->initializeHomeworks($data["homeworks"]);
+        if (!empty($data['SeminarId'])) {
+            $this->SeminarId = $data['SeminarId'];
+            $this->day = $data['Day'];
+            $this->timeStart = $data['TimeStart'];
+            $this->timeEnd = $data['TimeEnd'];
+            $this->initializeHomeworks($data["homeworks"]);
+        } else {
+            $this->SeminarId = 0;
+            $this->day = '';
+            $this->timeStart = '';
+            $this->timeEnd = '';
+            $this->Homeworks = array();
+        }
     }
 
     /**
@@ -27,6 +41,30 @@ class Seminar {
     public function getHomeworks(): array
     {
         return $this->Homeworks;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDay(): string
+    {
+        return $this->day;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTimeStart(): string
+    {
+        return $this->timeStart;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTimeEnd(): string
+    {
+        return $this->timeEnd;
     }
 
 

@@ -1,4 +1,5 @@
 <?php
+
 require_once __DIR__ . '/classes/Seminar.php';
 require_once __DIR__ . '/inc/db.php';
 
@@ -18,6 +19,7 @@ include __DIR__ . '/inc/header.php';
 $seminar = null;
 $queryString = '';
 $addHomeworkHtml = '';
+
 
 if (isset($_SESSION["Student"]) && $_SESSION["Student"] == 1) {
     if (isset($_GET["GuarantorId"]) && !empty($_GET["GuarantorId"])) {
@@ -75,8 +77,6 @@ Seminar.SeminarId=:SeminarId AND Seminar.TeacherId=:UserId INNER JOIN Course ON 
         </div>
     </div>
 </div>';
-
-
 } else {
     header('Location: /error/404');
     exit();
@@ -96,7 +96,6 @@ if ($courseDataQuery->rowCount()!=1) {
 
 $courseData = $courseDataQuery->fetch(PDO::FETCH_ASSOC);
 
-
 $homeworksDataQuery = $db->prepare('SELECT Homework.*, SeminarHomework.Visible FROM SeminarHomework INNER JOIN Homework ON
         SeminarHomework.HomeworkId=Homework.HomeworkId AND SeminarHomework.SeminarId=:SeminarId;');
 
@@ -107,7 +106,7 @@ $homeworksDataQuery->execute([
 $homeworksData = $homeworksDataQuery->fetchAll(PDO::FETCH_ASSOC);
 
 if (!empty($courseData)) {
-    $seminar = new classes\Seminar(array("SeminarId" => $_GET["SeminarId"], "homeworks" => $homeworksData));
+    $seminar = new classes\Seminar(array("SeminarId" => $_GET["SeminarId"], 'Day' => $courseData['Day'], 'TimeStart' => $courseData['TimeStart'], 'TimeEnd' => $courseData['TimeEnd'], "homeworks" => $homeworksData));
 }
 
 if (is_null($seminar)) {
