@@ -212,7 +212,10 @@ function printSubmittedHomeworks($submittedHomeworks) {
     foreach ($submittedHomeworks as $username => $usernameSubmittedHomeworks) {
         echo '<div class="homeworksUsername"><div class="username clickableSibling">' . $username . '</div>';
         foreach ($usernameSubmittedHomeworks as $submittedHomework) {
-            echo '<div class="homework" style="display: none">';
+            echo '<div class="homework"';
+            if (isset($_SESSION["Teacher"]) && $_SESSION["Teacher"] == 1) {
+                echo 'style="display: none">';
+            }
             $tmpDownloadFile = tmpfile();
             fwrite($tmpDownloadFile, $submittedHomework->getSubmittedFile());
 
