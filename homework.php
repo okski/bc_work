@@ -177,7 +177,9 @@ $course->getSeminar()->getHomeworks()[0]->printHomework();
 
 if ($_SESSION['UserId'] == $course->getSeminar()->getHomeworks()[0]->getAddedBy() && !$course->getSeminar()->getHomeworks()[0]->isGeneral()) {
     echo '<form action="'.$_SESSION['rdrurl'].'/edit" method="post">
-<input type="hidden" name="HomeworkId" id="HomeworkId" value="' . $homeworkData['HomeworkId'] . '">
+<input type="hidden" name="HomeworkId" id="HomeworkId" value="' . $course->getSeminar()->getHomeworks()[0]->getHomeworkId() . '">
+<input type="hidden" name="Seminar" id="Seminar" value="' . htmlspecialchars($seminarInfo) . '">
+<input type="hidden" name="General" id="General" value="0">
 <button type="submit">Edit</button>
 </form>';
 }

@@ -17,10 +17,25 @@ if (empty($_POST)) {
     exit();
 }
 
+$General = 1;
+
+if (isset($_POST['General']) && $_POST['General'] == 0) {
+    $General = 0;
+}
+
 
 if (isset($_POST['HomeworkId'])) {
-    $homeworkQuery = $db->prepare('SELECT Homework.*, SeminarHomework.Visible FROM Homework INNER JOIN SeminarHomework ON Homework.HomeworkId = SeminarHomework.HomeworkId
-                  WHERE Homework.HomeworkId=:HomeworkId AND Homework.AddedBy=:UserId AND Homework.General=1  LIMIT 1;');
+    $queryString = '';
+
+    if (!$General) {
+        $queryString = 'SELECT Homework.*, SeminarHomework.Visible FROM Homework INNER JOIN SeminarHomework ON Homework.HomeworkId = SeminarHomework.HomeworkId
+                  WHERE Homework.HomeworkId=:HomeworkId AND Homework.AddedBy=:UserId AND Homework.General=0  LIMIT 1;';
+    } else {
+        $queryString = 'SELECT Homework.*, SeminarHomework.Visible FROM Homework INNER JOIN SeminarHomework ON Homework.HomeworkId = SeminarHomework.HomeworkId
+                  WHERE Homework.HomeworkId=:HomeworkId AND Homework.AddedBy=:UserId AND Homework.General=1  LIMIT 1;';
+    }
+
+    $homeworkQuery = $db->prepare($queryString);
 
     $homeworkQuery->execute([
         ':HomeworkId' => $_POST['HomeworkId'],
@@ -79,12 +94,40 @@ if (isset($_POST['HomeworkId'])) {
         <p class="arrow">→</p>
     </div>
     <div class="breadcrumbPath">
-        <a href="<?php echo $_SESSION['rdrurl']?>">Course (<?php echo htmlspecialchars($_GET['Ident']). ' in ' . htmlspecialchars($_GET['Semester']) . ' in ' . htmlspecialchars($_GET['Year'] . '/' . (substr($_GET['Year'], 2, 2) +1)) ?>)</a>
+        <a href="<?php
+        if (!$General) {
+            echo substr($_SESSION['rdrurl'], 0, strpos($_SESSION['rdrurl'], '/homework'));
+        } else {
+            echo $_SESSION['rdrurl'];
+        }
+        ?>">
+        <?php
+        if (!$General) {
+            echo 'Seminar (' . htmlspecialchars($_POST['Seminar']);
+        } else {
+            echo 'Course (';
+            echo htmlspecialchars($_GET['Ident']). ' in ' . htmlspecialchars($_GET['Semester']) . ' in ' . htmlspecialchars($_GET['Year'] . '/' . (substr($_GET['Year'], 2, 2) +1));
+        } ?>)</a>
         <p class="arrow">→</p>
         <p></p>
     </div>
     <div class="breadcrumbPath">
-        <p>edit: <?php echo htmlspecialchars($homework['Name']) ?></p>
+    <?php
+    if (!$General) {
+        echo '<a href="' . $_SESSION['rdrurl'] . '">';
+        echo htmlspecialchars($homework['Name']) . '</a><p class="arrow">→</p>
+        <p></p>';
+    }
+    ?>
+    </div>
+    <div class="breadcrumbPath">
+        <p><?php
+                if (!$General) {
+                    echo 'edit';
+                } else {
+                    echo  'edit:' . htmlspecialchars($homework['Name']);
+                }
+            ?></p>
     </div>
 </div>
 
@@ -125,5 +168,10 @@ if (isset($_POST['HomeworkId'])) {
             >
                 </div>
                 <input type="hidden" name="HomeworkId" id="HomeworkId" value="<?php echo htmlspecialchars($_POST['HomeworkId']) ?>">
+    <?php
+        if (!$General) {
+            echo '<input type="hidden" name="General" id="General" value="' . $General . '">';
+        }
+    ?>
                 <button type="submit" name="editHomework" value="true" >Edit</button>
             </form>
