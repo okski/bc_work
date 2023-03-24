@@ -11,15 +11,18 @@ for (let i=0; i<clickableElements.length; i++) {
     });
 }
 
-// function changeVisibilityOfSibling(elemId) {
-//     let elem = document.getElementById(elemId);
-//     let elemSibling = elem.nextSibling;
-//     if (elem.checked) {
-//         elemSibling.style.display = "block";
-//     } else {
-//         elemSibling.style.display = "none";
-//     }
-// }
+let clickableElementsSiblings = document.querySelectorAll('.clickableSibling');
+
+for (let i=0; i<clickableElementsSiblings.length; i++) {
+    clickableElementsSiblings[i].addEventListener('click', function (e) {
+        let nextElementSibling = this.nextElementSibling;
+        if (nextElementSibling.style.display === "none") {
+            nextElementSibling.style.display = "block";
+        } else {
+            nextElementSibling.style.display = "none";
+        }
+    });
+}
 
 let clickableBox = document.querySelectorAll('.clickableBox');
 

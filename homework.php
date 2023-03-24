@@ -1,5 +1,6 @@
 <?php
-require_once __DIR__.'/classes/Homework.php';
+require_once __DIR__.'/classes/Course.php';
+require_once __DIR__.'/classes/SubmittedHomework.php';
 require_once __DIR__ . '/inc/db.php';
 
 session_start();
@@ -14,29 +15,77 @@ if (empty($_SESSION['UserId'])){
 
 include __DIR__ . '/inc/header.php';
 
-$homework = null;
-$submmitedHomeworks = null;
+$course = null;
+$submittedHomeworks = null;
+$homeworkQueryString = '';
+$submittedHomeworkQueryString = '';
+$submittedHomeworkQueryArr = array();
 
-$homeworkDataQuery = $db->prepare('SELECT * FROM Homework WHERE HomeworkId=:HomeworkId LIMIT 1;');
+if (isset($_SESSION["Student"]) && $_SESSION["Student"] == 1) {
+    $homeworkQueryString = 'SELECT *  FROM SeminarHomework INNER JOIN Seminar ON SeminarHomework.SeminarId = Seminar.SeminarId AND SeminarHomework.SeminarId=:SeminarId
+                        INNER JOIN Homework ON SeminarHomework.HomeworkId = Homework.HomeworkId AND SeminarHomework.HomeworkId=:HomeworkId
+                        INNER JOIN TeachedCourse ON Seminar.TeachedCourseId = TeachedCourse.TeachedCourseId
+                        INNER JOIN Course ON TeachedCourse.CourseId = Course.CourseId;';
+
+    $submittedHomeworkQueryString = 'SELECT SubmittedHomework.* FROM Homework INNER JOIN SeminarHomework ON Homework.HomeworkId = SeminarHomework.HomeworkId AND SeminarId=:SeminarId
+                                        INNER JOIN SubmittedHomework ON Homework.HomeworkId = SubmittedHomework.HomeworkId AND Homework.HomeworkId=:HomeworkId
+                                        WHERE StudentId=:StudentId ORDER BY DateTime DESC;';
+
+    $submittedHomeworkQueryArr = [
+        ':HomeworkId' => $_GET["HomeworkId"],
+        ':SeminarId' => $_GET["SeminarId"],
+        ':StudentId' => $_SESSION['UserId']
+    ];
+} elseif(isset($_SESSION["Teacher"]) && $_SESSION["Teacher"] == 1) {
+    $homeworkQueryString = 'SELECT *  FROM SeminarHomework INNER JOIN Seminar ON SeminarHomework.SeminarId = Seminar.SeminarId AND SeminarHomework.SeminarId=:SeminarId
+                        INNER JOIN Homework ON SeminarHomework.HomeworkId = Homework.HomeworkId AND SeminarHomework.HomeworkId=:HomeworkId
+                        INNER JOIN TeachedCourse ON Seminar.TeachedCourseId = TeachedCourse.TeachedCourseId
+                        INNER JOIN Course ON TeachedCourse.CourseId = Course.CourseId;';
+
+    $submittedHomeworkQueryString = 'SELECT SubmittedHomework.*, User.Username FROM Homework INNER JOIN SeminarHomework ON Homework.HomeworkId = SeminarHomework.HomeworkId AND SeminarId=:SeminarId
+                                        INNER JOIN SubmittedHomework ON Homework.HomeworkId = SubmittedHomework.HomeworkId AND Homework.HomeworkId=:HomeworkId
+                                        INNER JOIN Student ON SubmittedHomework.StudentId = Student.StudentId
+                                        INNER JOIN User ON Student.StudentId = User.UserId ORDER BY User.Username, DateTime DESC;';
+
+    $submittedHomeworkQueryArr = [
+        ':HomeworkId' => $_GET["HomeworkId"],
+        ':SeminarId' => $_GET["SeminarId"]
+    ];
+} else {
+    header('Location: /error/404');
+    exit();
+}
+
+$homeworkDataQuery = $db->prepare($homeworkQueryString);
 
 $homeworkDataQuery->execute([
+    ':SeminarId' => $_GET['SeminarId'],
     ':HomeworkId' => $_GET["HomeworkId"]
 ]);
+
+if ($homeworkDataQuery->rowCount()!=1) {
+    header('Location: /error/404');
+    exit();
+}
+
 $homeworkData = $homeworkDataQuery->fetch(PDO::FETCH_ASSOC);
 
-if (!empty($homeworkData)) {
-    $homework = new \classes\Homework($homeworkData);
-}
-if (is_null($homework)) {
+
+if ($homeworkData['Visible'] != 1) {
     header('Location: /error/404');
 }
 
-$submittedHomeworksDataQuery = $db->prepare('SELECT SubmittedHomework.* FROM SubmittedHomework WHERE HomeworkId=:HomeworkId AND StudentId=:StudentId ORDER BY DateTime DESC;');
+if (!empty($homeworkData)) {
+    $seminar = array("SeminarId" => $homeworkData["SeminarId"], 'Day' => $homeworkData['Day'], 'TimeStart' => $homeworkData['TimeStart'], 'TimeEnd' => $homeworkData['TimeEnd'], "homeworks" => array($homeworkData));
+    $course = new \classes\Course($homeworkData['Ident'], $homeworkData['Year'], $homeworkData['Semester'], $seminar, $homeworkData['GuarantorId']);
+}
+if (is_null($course->getSeminar()->getHomeworks()[0])) {
+    header('Location: /error/404');
+}
 
-$submittedHomeworksDataQuery->execute([
-    ':HomeworkId' => $homework->getHomeworkId(),
-    ':StudentId' => $_SESSION['UserId']
-]);
+$submittedHomeworksDataQuery = $db->prepare($submittedHomeworkQueryString);
+
+$submittedHomeworksDataQuery->execute($submittedHomeworkQueryArr);
 
 $submittedHomeworksData = $submittedHomeworksDataQuery->fetchAll(PDO::FETCH_ASSOC);
 
@@ -47,23 +96,21 @@ $submittedHomeworksData = $submittedHomeworksDataQuery->fetchAll(PDO::FETCH_ASSO
 if ($_FILES["myfile"] != null) {
     echo '<pre>';
     $fileName = $_FILES["myfile"]["tmp_name"];
-//    var_dump($_FILES["myfile"]);
-//    var_dump($fileName);
     $tempMarkingFile = tmpfile();
     $tempDataFile = tmpfile();
 
-    fwrite($tempMarkingFile, $homework->getMarking());
-    fwrite($tempDataFile, $_SESSION['UserId'].":".$homework->getHomeworkId());
+    fwrite($tempMarkingFile, $course->getSeminar()->getHomeworks()[0]->getMarking());
+    fwrite($tempDataFile, $_SESSION['UserId'].":".$course->getSeminar()->getHomeworks()[0]->getHomeworkId());
 
 
     shell_exec("docker pull hosj03/docker-app:latest -q && docker system prune -f");
 
-    $composeString = "docker compose -p " . $_SESSION['UserId'] . "-" . $homework->getHomeworkId() . " up -d --quiet-pull --force-recreate 2>&1";
+    $composeString = "docker compose -p " . $_SESSION['UserId'] . "-" . $course->getSeminar()->getHomeworks()[0]->getHomeworkId() . " up -d --quiet-pull --force-recreate 2>&1";
     $compose = shell_exec($composeString);
 //    echo $compose;
 //
 //    docker container ls --filter name=localwebdev-app-1 | awk '/localwebdev-app-1/ {print $1}'
-    $containerID = shell_exec("docker container ls --all --quiet --filter name=" . $_SESSION['UserId'] . "-" . $homework->getHomeworkId() . "-app-1");
+    $containerID = shell_exec("docker container ls --all --quiet --filter name=" . $_SESSION['UserId'] . "-" . $course->getSeminar()->getHomeworks()[0]->getHomeworkId() . "-app-1");
 
     $containerID = substr($containerID, 0, 12);
 
@@ -92,7 +139,7 @@ if ($_FILES["myfile"] != null) {
 
     $systemUser = shell_exec('docker container ls 2>&1');
 
-    if (strpos($systemUser, $_SESSION['UserId']. "-" . $homework->getHomeworkId()  . "-app" ) !== false) {
+    if (strpos($systemUser, $_SESSION['UserId']. "-" . $course->getSeminar()->getHomeworks()[0]->getHomeworkId()  . "-app" ) !== false) {
 
         $curlCommand = "curl --max-time 1 localhost:" . $containerPort;
         $stopCommand = "docker stop " . $containerID . " > /dev/null &";
@@ -113,46 +160,66 @@ echo '<div class="breadcrumb_div">
         <div class="breadcrumbPath">
             <a href="/seminar/' . htmlspecialchars($_GET["SeminarId"]) . '">';
 
-if(isset($_SESSION["seminarBreadCrumb"])) {
-    echo $_SESSION["seminarBreadCrumb"];
-} else {
-    echo 'Seminar (' . htmlspecialchars($_GET["SeminarId"]) . ')';
-}
+$seminarInfo = htmlspecialchars($course->getIdent()) . ' in ' . htmlspecialchars($course->getSemester()) . ' in ' . htmlspecialchars($course->getYear()) . ' at ' . date_format(date_create($course->getSeminar()->getTimeStart()),"H:i") . '-' . date_format(date_create($course->getSeminar()->getTimeEnd()),"H:i") . ' on ' . date_format(date_create($course->getSeminar()->getDay()), "l");
+
+
+echo 'Seminar (' . $seminarInfo . ')';
 
 echo '</a>
             <p class="arrow">→</p>
         </div>
         <div class="breadcrumbPath">
-            <p>' . $homework->getName() . '</p>
+            <p>' . $course->getSeminar()->getHomeworks()[0]->getName() . '</p>
         </div>
     </div>';
 
-$homework->printHomework();
+$course->getSeminar()->getHomeworks()[0]->printHomework();
 
-echo '<form id="uploadbanner" enctype="multipart/form-data" method="post" action="#">
+if ($_SESSION['UserId'] == $course->getSeminar()->getHomeworks()[0]->getAddedBy() && !$course->getSeminar()->getHomeworks()[0]->isGeneral()) {
+    echo '<form action="'.$_SESSION['rdrurl'].'/edit" method="post">
+<input type="hidden" name="HomeworkId" id="HomeworkId" value="' . $homeworkData['HomeworkId'] . '">
+<button type="submit">Edit</button>
+</form>';
+}
+
+if (isset($_SESSION["Student"]) && $_SESSION["Student"] == 1) {
+    echo '<form id="uploadbanner" enctype="multipart/form-data" method="post" action="#">
         <input id="fileupload" name="myfile" type="file" required />
         <input type="submit" value="submit" id="submit" />
     </form>';
 
-echo '<div class="submittedHomeworks">';
+    echo '<div class="submittedHomeworks">';
+}
 
-printSubmittedHomeworks($submittedHomeworksData);
+
+foreach ($submittedHomeworksData as $submittedHomeworkData) {
+    $submittedHomeworks[$submittedHomeworkData['Username']][] = new \classes\SubmittedHomework($submittedHomeworkData);
+
+}
+
+//var_dump($submittedHomeworks);
+
+printSubmittedHomeworks($submittedHomeworks);
 
 echo '</div>';
 include __DIR__ . '/inc/footer.php';
 
 
-function printSubmittedHomeworks($submittedHomeworksData) {
-    foreach ($submittedHomeworksData as $submittedHomeworkData) {
-        $tmpDownloadFile = tmpfile();
-        fwrite($tmpDownloadFile, $submittedHomeworkData["SubmittedFile"]);
 
-//        var_dump($submittedHomeworkData);
+function printSubmittedHomeworks($submittedHomeworks) {
+    foreach ($submittedHomeworks as $username => $usernameSubmittedHomeworks) {
+        echo '<div class="homeworksUsername"><div class="username clickableSibling">' . $username . '</div>';
+        foreach ($usernameSubmittedHomeworks as $submittedHomework) {
+            echo '<div class="homework" style="display: none">';
+            $tmpDownloadFile = tmpfile();
+            fwrite($tmpDownloadFile, $submittedHomework->getSubmittedFile());
 
-        echo '<div class="submittedHomework">';
-        echo '<div class="submittedHomeworkTime">' . $submittedHomeworkData["DateTime"] . '</div>';
-        echo '<div class="submittedHomeworkResult">' . $submittedHomeworkData["Result"] . '</div>';
-        echo "<button type='submit' onclick='window.open(\"/download.php?fileId=" . $submittedHomeworkData["SubmittedHomeworkId"] . "\");'>Download</button><br>";
+            echo '<div class="submittedHomework">';
+            echo '<div class="submittedHomeworkTime">' . $submittedHomework->getDateTime() . '</div>';
+            echo '<div class="submittedHomeworkResult">' . $submittedHomework->getResult() . '</div>';
+            echo "<button type='submit' onclick='window.open(\"/download.php?fileId=" . $submittedHomework->getSubmittedHomeworkId() . "\");'>Download</button><br>";
+            echo '</div></div>';
+        }
         echo '</div>';
 //        fclose($tmpDownloadFile);
     }

@@ -4,6 +4,7 @@ require_once __DIR__ . '/classes/Seminar.php';
 require_once __DIR__ . '/inc/db.php';
 
 session_start();
+
 if (empty($_POST)) {
     $_SESSION['rdrurl'] = $_SERVER['REQUEST_URI'];
 }
@@ -22,10 +23,6 @@ $addHomeworkHtml = '';
 
 
 if (isset($_SESSION["Student"]) && $_SESSION["Student"] == 1) {
-    if (isset($_GET["GuarantorId"]) && !empty($_GET["GuarantorId"])) {
-        header('Location: /error/404');
-        exit();
-    }
     $queryString = 'SELECT Course.Ident, TeachedCourse.Year, TeachedCourse.Semester, Seminar.SeminarId, Seminar.TimeStart, Seminar.TimeEnd, Seminar.Day
 from Seminar INNER JOIN TeachedCourse ON TeachedCourse.TeachedCourseId=Seminar.TeachedCourseId AND 
 Seminar.SeminarId=:SeminarId INNER JOIN Course ON Course.CourseId=TeachedCourse.CourseId INNER JOIN SeminarStudent

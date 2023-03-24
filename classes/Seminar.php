@@ -18,6 +18,7 @@ class Seminar {
             $this->timeStart = $data['TimeStart'];
             $this->timeEnd = $data['TimeEnd'];
             $this->initializeHomeworks($data["homeworks"]);
+
         } else {
             $this->SeminarId = 0;
             $this->day = '';

@@ -24,7 +24,7 @@ if ($_FILES["myfile"] != null) {
 
     $containerPort = substr($containerPort, 0, strlen($containerPort) - 1);
 
-    var_dump($containerPort);
+//    var_dump($containerPort);
 
 //    docker cp  ~/Desktop/filename.txt container-id:/path/filename.txt
     $dockerCopyCommand = "docker cp " . $fileName . " " . $containerID . ":/var/www/html/test.java 2>&1";

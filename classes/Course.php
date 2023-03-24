@@ -23,6 +23,7 @@ class Course {
         $this->semester = $semester;
         $this->seminar = new Seminar($seminar);
         $this->GuarantorId = (int)$GuarantorId;
+
     }
 
     /**

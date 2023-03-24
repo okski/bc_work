@@ -14,12 +14,17 @@ class Homework {
 
     private int $Visible;
 
+    private int $AddedBy;
+    private bool $General;
+
     public function __construct(array $data) {
-            $this->HomeworkId = $data['HomeworkId'];
-            $this->Name = $data['Name'];
-            $this->Description = $data['Description'];
-            $this->Marking = $data['Marking'];
-            $this->Visible = (int)$data['Visible'];
+        $this->HomeworkId = $data['HomeworkId'];
+        $this->Name = $data['Name'];
+        $this->Description = $data['Description'];
+        $this->Marking = $data['Marking'];
+        $this->AddedBy = (int)$data['AddedBy'];
+        $this->General = (bool)$data['General'];
+        $this->Visible = (int)$data['Visible'];
 
     }
 
@@ -63,7 +68,21 @@ class Homework {
         return $this->Visible;
     }
 
+    /**
+     * @return int
+     */
+    public function getAddedBy(): int
+    {
+        return $this->AddedBy;
+    }
 
+    /**
+     * @return bool
+     */
+    public function isGeneral(): int
+    {
+        return $this->General;
+    }
 
 
 
