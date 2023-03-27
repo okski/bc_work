@@ -79,34 +79,43 @@ class Seminar {
         }
     }
 
-    public function __toString() {
-        $result = "<div class='homeworks'>";
-        $result = $result . $this->toStringHomeworks();
-        $result = $result . "</div>";
-
-        return $result;
-    }
-
-    private function toStringHomeworks(): string
+    public function toString($role): string
     {
-        $result = "";
-        if (!empty($this->Homeworks)) {
-            $visibleCounter = 0;
-            foreach ($this->Homeworks as $homework) {
-                if (!is_null($homework)) {
-                    if ($homework->getVisible()) {
-                        $result = $result . $homework->__toString();
-                    } else {
-                        $visibleCounter++;
+        $result = "<div class='homeworks'>";
+
+        if ($role == 'Student') {
+            if (!empty($this->Homeworks)) {
+                $visibleCounter = 0;
+                foreach ($this->Homeworks as $homework) {
+                    if (!is_null($homework)) {
+                        if ($homework->getVisible()) {
+                            $result = $result . $homework->__toString();
+                        } else {
+                            $visibleCounter++;
+                        }
                     }
                 }
-            }
-            if ($visibleCounter == count($this->Homeworks)) {
+                if ($visibleCounter == count($this->Homeworks)) {
+                    echo '<div>This seminar does not have any homeworks.</div>';
+                }
+            } else {
                 echo '<div>This seminar does not have any homeworks.</div>';
             }
         } else {
-            echo '<div>This seminar does not have any homeworks.</div>';
+            if (!empty($this->Homeworks)) {
+                foreach ($this->Homeworks as $homework) {
+                    if (!is_null($homework)) {
+                        if (!$homework->isGeneral()) {
+                            $result = $result . $homework->__toString();
+                        }
+                    }
+                }
+            } else {
+                echo '<div>This seminar does not have any homeworks.</div>';
+            }
         }
+
+        $result = $result . "</div>";
 
         return $result;
     }

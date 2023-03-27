@@ -131,7 +131,7 @@ if (isset($_POST['HomeworkId'])) {
     </div>
 </div>
 
-<form method="post" enctype="multipart/form-data">
+<form method="post" enctype="multipart/form-data" name="homeworkForm">
                 <div class="field">
                     <label for="Name">Name: </label>
                     <input type="text" name="Name" id="Name" placeholder="ex. Hello World!" pattern="^\S+(\s)?\S*$" value="<?php echo htmlspecialchars($homework['Name']) ?>" required>
@@ -153,7 +153,7 @@ if (isset($_POST['HomeworkId'])) {
       }
   ]
 }'  required><?php echo $homework['Marking'] ?></textarea>
-                    <!--Marking regular expression: ^{\s*\"maximum\":\s*[1-9]+,\s*"marking":\s*\[\s*({"text":\s*".*",\s*"weight":\s*"\d(.\d+)?"\s*},\s*)+(?!,)\s*({"text":\s*".*",\s*"weight":\s*"\d(.\d+)?"\s*}\s*)\s*]\s*}$-->
+                    <div class="text-danger" style="display: none"></div>
                 </div>
                 <div class="field">
                     <label for="InputFile">Input: </label>
@@ -175,3 +175,6 @@ if (isset($_POST['HomeworkId'])) {
     ?>
                 <button type="submit" name="editHomework" value="true" >Edit</button>
             </form>
+
+<?php
+include __DIR__ . '/inc/footer.php';

@@ -71,7 +71,7 @@ if ($homeworkDataQuery->rowCount()!=1) {
 $homeworkData = $homeworkDataQuery->fetch(PDO::FETCH_ASSOC);
 
 
-if ($homeworkData['Visible'] != 1) {
+if ($_SESSION['Student'] == 1 && $homeworkData['Visible'] != 1) {
     header('Location: /error/404');
 }
 
@@ -181,6 +181,10 @@ if ($_SESSION['UserId'] == $course->getSeminar()->getHomeworks()[0]->getAddedBy(
 <input type="hidden" name="Seminar" id="Seminar" value="' . htmlspecialchars($seminarInfo) . '">
 <input type="hidden" name="General" id="General" value="0">
 <button type="submit">Edit</button>
+</form>
+<form action="'.$_SESSION['rdrurl'].'/delete" method="post">
+<input type="hidden" name="HomeworkId" id="HomeworkId" value="' . $homeworkData['HomeworkId'] . '">
+<button type="submit">Delete</button>
 </form>';
 }
 

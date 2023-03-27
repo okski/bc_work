@@ -115,7 +115,7 @@ if (!empty($_POST)) {
         <label for="homework">Add homework</label>
         <input type="checkbox" id="homework" class="homework clickableBox" >
         <div id="homeworkSubMenu" style="display: none">
-            <form method="post">
+            <form method="post" name="homeworkForm">
                 <div class="field">
                     <label for="Name">Name: </label>
                     <input type="text" name="Name" id="Name" placeholder="ex. Hello World!" pattern="^\S+(\s)?\S*$" required>
@@ -137,7 +137,7 @@ if (!empty($_POST)) {
       }
   ]
 }'  required></textarea>
-                    <!--Marking regular expression: ^{\s*\"maximum\":\s*[1-9]+,\s*"marking":\s*\[\s*({"text":\s*".*",\s*"weight":\s*"\d(.\d+)?"\s*},\s*)+(?!,)\s*({"text":\s*".*",\s*"weight":\s*"\d(.\d+)?"\s*}\s*)\s*]\s*}$-->
+                    <div class="text-danger" style="display: none"></div>
                 </div>
                 <div class="field">
                     <label for="Stdin">Stdin: </label>
@@ -182,8 +182,20 @@ foreach ($homeworksData as $homeworkData) {
 <input type="hidden" name="HomeworkId" id="HomeworkId" value="' . $homeworkData['HomeworkId'] . '">
 <button type="submit">Edit</button>
 </form>
+<form action="'.$_SESSION['rdrurl'].'/delete" method="post">
+<input type="hidden" name="HomeworkId" id="HomeworkId" value="' . $homeworkData['HomeworkId'] . '">
+<button type="submit">Delete</button>
+</form>
 </div>';
 }
 
 echo '</div>';
 include __DIR__ . '/inc/footer.php';
+
+function errorHandler ($data, $errors, $index) {
+    echo 'value="'.htmlspecialchars($data).'">';
+
+    if (!empty($errors[$index])) {
+        print "<div class='text-danger'>".$errors[$index]."</div>";
+    }
+}

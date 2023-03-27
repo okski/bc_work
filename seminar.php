@@ -37,7 +37,7 @@ Seminar.SeminarId=:SeminarId AND Seminar.TeacherId=:UserId INNER JOIN Course ON 
         <label for="homework">Add homework</label>
         <input type="checkbox" id="homework" class="homework clickableBox" >
         <div id="homeworkSubMenu" style="display: none">
-            <form method="post">
+            <form method="post" name="homeworkForm">
                 <div class="field">
                     <label for="Name">Name: </label>
                     <input type="text" name="Name" id="Name" placeholder="ex. Hello World!" pattern="^\S+(\s)?\S*$" required>
@@ -59,7 +59,7 @@ Seminar.SeminarId=:SeminarId AND Seminar.TeacherId=:UserId INNER JOIN Course ON 
       }
   ]
 }\'  required></textarea>
-                    <!--Marking regular expression: ^{\s*\"maximum\":\s*[1-9]+,\s*"marking":\s*\[\s*({"text":\s*".*",\s*"weight":\s*"\d(.\d+)?"\s*},\s*)+(?!,)\s*({"text":\s*".*",\s*"weight":\s*"\d(.\d+)?"\s*}\s*)\s*]\s*}$-->
+                    <div class="text-danger" style="display: none"></div>
                 </div>
                 <div class="field">
                     <label for="Stdin">Stdin: </label>
@@ -172,7 +172,11 @@ echo '<div class="breadcrumb_div">
             </div>
     </div>';
 
-print($seminar);
+if (isset($_SESSION["Student"]) && $_SESSION["Student"] == 1) {
+    echo $seminar->toString('Student');
+}elseif (isset($_SESSION["Teacher"]) && $_SESSION["Teacher"] == 1) {
+    echo $seminar->toString('Teacher');
+}
 
 echo $addHomeworkHtml;
 
