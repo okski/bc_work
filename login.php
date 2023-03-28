@@ -72,14 +72,14 @@ if (!empty($_POST)) {
             <div class="form-group">
                 <label for="email">E-mail:</label>
                 <input type="email" name="Email" id="email" required class="form-control <?php echo ($errors?'is-invalid':''); ?>" value="<?php echo htmlspecialchars(@$_POST['email'])?>"/>
-                <?php
-                echo ($errors?'<div class="invalid-feedback">Combination of this email and password is incorrect.</div>':'');
-                ?>
             </div>
             <div class="form-group">
                 <label for="password">Password:</label>
                 <input type="password" name="password" id="password" required class="form-control <?php echo ($errors?'is-invalid':''); ?>" />
             </div>
+            <?php
+            echo ($errors?'<div class="invalid-feedback">Combination of this email and password is incorrect.</div>':'');
+            ?>
             <button type="submit" class="btn btn-primary">login</button>
         </form>
     </div>

@@ -13,13 +13,14 @@ if (empty($_SESSION['UserId'])){
     exit();
 }
 
-include __DIR__ . '/inc/header.php';
 
 $course = null;
 $submittedHomeworks = null;
 $homeworkQueryString = '';
 $submittedHomeworkQueryString = '';
 $submittedHomeworkQueryArr = array();
+$needRefresh = 0;
+
 
 if (isset($_SESSION["Student"]) && $_SESSION["Student"] == 1) {
     $homeworkQueryString = 'SELECT *  FROM SeminarHomework INNER JOIN Seminar ON SeminarHomework.SeminarId = Seminar.SeminarId AND SeminarHomework.SeminarId=:SeminarId
@@ -89,18 +90,58 @@ $submittedHomeworksDataQuery->execute($submittedHomeworkQueryArr);
 
 $submittedHomeworksData = $submittedHomeworksDataQuery->fetchAll(PDO::FETCH_ASSOC);
 
+foreach ($submittedHomeworksData as $submittedHomeworkData) {
+    if (is_null($submittedHomeworkData['ResultFile'])) {
+        $needRefresh = 1;
+        if ((time() - strtotime($submittedHomeworkData['DateTime'])) > 30) {
+            $updateQuery = $db->prepare('UPDATE BcWork.SubmittedHomework SET ResultFile=:ResultFile WHERE SubmittedHomeworkId=:SubmittedHomeworkId LIMIT 1;');
+            try {
+                $db->beginTransaction();
+
+                $updateQuery->execute([
+                    ':ResultFile'=> '',
+                    ':SubmittedHomeworkId'=>$submittedHomeworkData['SubmittedHomeworkId']
+                ]);
+
+                $db->commit();
+                $submittedHomeworkData['ResultFile'] = '';
+
+            } catch (PDOException $e) {
+                $db->rollBack();
+                echo $e;
+            }
+            $needRefresh = 0;
+        }
+    }
+    $submittedHomeworks[$submittedHomeworkData['Username']][] = new \classes\SubmittedHomework($submittedHomeworkData);
+}
+
+if ($needRefresh) {
+    $_SESSION['refresh'] = 1;
+} else {
+    unset($_SESSION['refresh']);
+}
+
+include __DIR__ . '/inc/header.php';
+
 
 /**
  * File handling with creation of docker container
  */
 if ($_FILES["myfile"] != null) {
+//    var_dump('submit');
     echo '<pre>';
+
     $fileName = $_FILES["myfile"]["tmp_name"];
+
     $tempMarkingFile = tmpfile();
     $tempDataFile = tmpfile();
+    $tempInputFile = tmpfile();
 
     fwrite($tempMarkingFile, $course->getSeminar()->getHomeworks()[0]->getMarking());
     fwrite($tempDataFile, $_SESSION['UserId'].":".$course->getSeminar()->getHomeworks()[0]->getHomeworkId());
+    var_dump($course->getSeminar()->getHomeworks()[0]->getInputFile());
+    fwrite($tempInputFile, $course->getSeminar()->getHomeworks()[0]->getInputFile());
 
 
     shell_exec("docker pull hosj03/docker-app:latest -q && docker system prune -f");
@@ -126,12 +167,14 @@ if ($_FILES["myfile"] != null) {
     $dockerCopyCommandRunFile = "docker cp " . $fileName . " " . $containerID . ":/home/user/test.java 2>&1";
     $dockerCopyCommandMarkingFile = "docker cp " . stream_get_meta_data($tempMarkingFile)["uri"] . " " . $containerID . ":/home/user/marking.json 2>&1";
     $dockerCopyCommandDataFile = "docker cp " . stream_get_meta_data($tempDataFile)["uri"] . " " . $containerID . ":/home/user/data 2>&1";
+    $dockerCopyCommandInputFile = "docker cp " . stream_get_meta_data($tempInputFile)["uri"] . " " . $containerID . ":/home/user/input 2>&1";
     $changeOwnershipCommand = "\"chown -R user:www-data /home/user && chmod -R u-rw,g+rw /home/user && chmod u+rwx /home/user/test.java\"";
 
 
     shell_exec($dockerCopyCommandRunFile);
     shell_exec($dockerCopyCommandMarkingFile);
     shell_exec($dockerCopyCommandDataFile);
+    shell_exec($dockerCopyCommandInputFile);
     shell_exec("docker exec " . $containerID . " sh -c " . $changeOwnershipCommand);
 
     fclose($tempMarkingFile);
@@ -146,7 +189,7 @@ if ($_FILES["myfile"] != null) {
 
 
         shell_exec($curlCommand);
-//        shell_exec($stopCommand);
+        shell_exec($stopCommand);
     }
     header('Location: ' . $_SERVER['REQUEST_URI']);
 }
@@ -198,12 +241,13 @@ if (isset($_SESSION["Student"]) && $_SESSION["Student"] == 1) {
 }
 
 
-foreach ($submittedHomeworksData as $submittedHomeworkData) {
-    $submittedHomeworks[$submittedHomeworkData['Username']][] = new \classes\SubmittedHomework($submittedHomeworkData);
-
+if ($needRefresh) {
+    echo '<div id="refresh"><div class="timer">30</div><a href="'.$_SESSION['rdrurl'].'"><input type="submit" value="Refresh"></a></div>';
 }
 
 //var_dump($submittedHomeworks);
+
+
 
 printSubmittedHomeworks($submittedHomeworks);
 
@@ -214,22 +258,24 @@ include __DIR__ . '/inc/footer.php';
 
 function printSubmittedHomeworks($submittedHomeworks) {
     foreach ($submittedHomeworks as $username => $usernameSubmittedHomeworks) {
-        echo '<div class="homeworksUsername"><div class="username clickableSibling">' . $username . '</div>';
+        if (isset($_SESSION["Teacher"]) && $_SESSION["Teacher"] == 1) {
+            echo '<div class="homeworksUsername"><div class="username clickableSibling">' . $username . '</div><div class="submittedHomeworks" style="display: none;">';
+        }
         foreach ($usernameSubmittedHomeworks as $submittedHomework) {
-            echo '<div class="homework"';
-            if (isset($_SESSION["Teacher"]) && $_SESSION["Teacher"] == 1) {
-                echo 'style="display: none">';
-            }
-            $tmpDownloadFile = tmpfile();
-            fwrite($tmpDownloadFile, $submittedHomework->getSubmittedFile());
 
             echo '<div class="submittedHomework">';
             echo '<div class="submittedHomeworkTime">' . $submittedHomework->getDateTime() . '</div>';
             echo '<div class="submittedHomeworkResult">' . $submittedHomework->getResult() . '</div>';
-            echo "<button type='submit' onclick='window.open(\"/download.php?fileId=" . $submittedHomework->getSubmittedHomeworkId() . "\");'>Download</button><br>";
-            echo '</div></div>';
+            echo "<button type='submit' onclick='window.open(\"/download.php?fileId=" . $submittedHomework->getSubmittedHomeworkId() . "&type=submitted\");'>Submitted file</button><br>";
+            if (isset($_SESSION["Teacher"]) && $_SESSION["Teacher"] == 1) {
+                echo "<button type='submit' onclick='window.open(\"/download.php?fileId=" . $submittedHomework->getSubmittedHomeworkId() . "&type=result\");'>Result file</button><br>";
+            }
+            echo '</div>';
+
+        }
+        if (isset($_SESSION["Teacher"]) && $_SESSION["Teacher"] == 1) {
+            echo '</div>';
         }
         echo '</div>';
-//        fclose($tmpDownloadFile);
     }
 }

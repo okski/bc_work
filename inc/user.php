@@ -12,6 +12,12 @@ if (!empty($_SESSION['UserId'])){
     if ($userQuery->rowCount()!=1){
         unset($_SESSION['UserId']);
         unset($_SESSION['Username']);
+        unset($_SESSION['UserId']);
+        unset($_SESSION['FirstName']);
+        unset($_SESSION['LastName']);
+        unset($_SESSION['Student']);
+        unset($_SESSION['Teacher']);
+        unset($_SESSION['Admin']);
         header('Location: /');
         exit();
     }

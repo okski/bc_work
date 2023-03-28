@@ -69,3 +69,26 @@ function checkMarking(e, markingDiv) {
         marking.nextElementSibling.style.display = 'block';
     }
 }
+
+function startTimer(duration, display) {
+    let timer = duration, minutes, seconds;
+    setInterval(function () {
+        seconds = parseInt(timer, 10);
+
+        seconds = seconds < 10 ? "0" + seconds : seconds;
+
+        display.textContent = seconds;
+
+        if (--timer < 0) {
+            timer = duration;
+        }
+    }, 1000);
+}
+
+if (document.getElementById('refresh') !== null) {
+    window.onload = function () {
+        let thirtySeconds = 29,
+            display = document.querySelector('#refresh').firstElementChild;
+        startTimer(thirtySeconds, display);
+    };
+}

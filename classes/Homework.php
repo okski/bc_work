@@ -17,6 +17,8 @@ class Homework {
     private int $AddedBy;
     private bool $General;
 
+    private string $InputFile;
+
     public function __construct(array $data) {
         $this->HomeworkId = $data['HomeworkId'];
         $this->Name = $data['Name'];
@@ -25,7 +27,11 @@ class Homework {
         $this->AddedBy = (int)$data['AddedBy'];
         $this->General = (bool)$data['General'];
         $this->Visible = (int)$data['Visible'];
-
+        if (!empty($data['InputFile'])) {
+            $this->InputFile = $data['InputFile'];
+        } else {
+            $this->InputFile = '';
+        }
     }
 
     /**
@@ -84,6 +90,15 @@ class Homework {
         return $this->General;
     }
 
+    /**
+     * @return string
+     */
+    public function getInputFile(): string
+    {
+        return $this->InputFile;
+    }
+
+
 
 
     public function __toString() {
@@ -99,7 +114,8 @@ class Homework {
 
     public function printHomework() {
         echo "<div class='homework'>
-                <div>" . $this->Name . "</div></div>";
+                <div class='homeworkName'>" . $this->Name . "</div>
+                <div class='homeworkDescription'>" . $this->Description . "</div></div>";
     }
 
 }

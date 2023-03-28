@@ -8,7 +8,7 @@ class SubmittedHomework
     private int $StudentId;
     private int $Result;
     private string $SubmittedFile;
-    private string $ResultFile;
+    private ?string $ResultFile;
     private string $DateTime;
 
     /**
@@ -20,7 +20,12 @@ class SubmittedHomework
         $this->StudentId = $data['StudentId'];
         $this->Result = $data['Result'];
         $this->SubmittedFile = $data['SubmittedFile'];
-        $this->ResultFile = $data['ResultFile'];
+        if (!is_null($data['ResultFile'])) {
+            $this->ResultFile = $data['ResultFile'];
+        } else {
+//            var_dump($this->ResultFile);
+            $this->ResultFile = null;
+        }
         $this->DateTime = $data['DateTime'];
     }
 
