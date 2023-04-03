@@ -3,6 +3,7 @@ require_once __DIR__ . '/inc/db.php';
 session_start();
 
 $homework = null;
+$seminarInfo = '';
 
 if (empty($_SESSION['UserId'])){
     //uživatel už je přihlášený, nemá smysl, aby se přihlašoval znovu
@@ -23,6 +24,9 @@ if (isset($_POST['General']) && $_POST['General'] == 0) {
     $General = 0;
 }
 
+if (isset($_POST['Seminar'])) {
+    $seminarInfo = $_POST['Seminar'];
+}
 
 if (isset($_POST['HomeworkId'])) {
     $queryString = '';
@@ -52,37 +56,57 @@ if (isset($_POST['HomeworkId'])) {
     $homework = $homeworkQuery->fetch();
 
     if (isset($_POST['editHomework']) && $_POST['editHomework'] = 'true') {
+        json_decode($_POST['Marking']);
 
-        if (isset($_POST['Visible']) && $_POST['Visible'] == 'visible') {
-            $visible = 1;
-        } else {
-            $visible = 0;
+        if (empty(trim($_POST['Name']))) {
+            $errors['Name'] = 'You have to set some name of homework.';
+        }
+        if (empty(trim($_POST['Description']))) {
+            $errors['Description'] = 'You have to set some description of homework.';
+        }
+        if (empty(trim($_POST['Marking']))) {
+            $errors['Marking'] = 'You have to set some marking for homework.';
+        } elseif (json_last_error() !== JSON_ERROR_NONE) {
+            $errors['Marking'] = 'Invalid JSON format.';
+        } elseif (!preg_match('/^{\s*"maximum":\s*[1-9]+,\s*"marking":\s*\[\s*({"text":\s*".*",\s*"weight":\s*"\d(.\d+)?"\s*},\s*)*(?!,)\s*({"text":\s*".*",\s*"weight":\s*"\d(.\d+)?"\s*}\s*)\s*]\s*}$/' , $_POST['Marking'])) {
+            $errors['Marking'] = 'Does not match wanted JSON structure.';
         }
 
-        $inputFile = $homework['InputFile'];
-        if (isset($_FILES['InputFile']) && !empty($_FILES['InputFile']['name'])) {
-            $inputFile = substr(file_get_contents($_FILES['InputFile']['tmp_name']), 0, $_FILES['InputFile']['size']);
+        if (empty($errors)) {
+            if (isset($_POST['Visible']) && $_POST['Visible'] == 'true') {
+                $visible = 1;
+            } else {
+                $visible = 0;
+            }
+
+            $inputFile = $homework['InputFile'];
+            if (isset($_FILES['InputFile']) && !empty($_FILES['InputFile']['name'])) {
+                $inputFile = substr(file_get_contents($_FILES['InputFile']['tmp_name']), 0, $_FILES['InputFile']['size']);
+            }
+
+            $homeworkUpdateQuery = $db->prepare('UPDATE Homework SET Name=:Name, Description=:Description, Marking=:Marking, InputFile=:InputFile WHERE HomeworkId=:HomeworkId;');
+
+            $homeworkUpdateQuery->execute([
+                ':Name' => $_POST['Name'],
+                ':Description' => $_POST['Description'],
+                ':Marking' => $_POST['Marking'],
+                ':InputFile' => $inputFile,
+                ':HomeworkId' => $_POST['HomeworkId']
+            ]);
+
+            $seminarHomeworkUpdateQuery = $db->prepare('UPDATE SeminarHomework SET Visible=:Visible WHERE HomeworkId=:HomeworkId;');
+
+            $seminarHomeworkUpdateQuery->execute([
+                ':Visible' => $visible,
+                ':HomeworkId' => $_POST['HomeworkId']
+            ]);
+
+            header('Location: '.$_SESSION['rdrurl']);
+            exit();
         }
 
-        $homeworkUpdateQuery = $db->prepare('UPDATE Homework SET Name=:Name, Description=:Description, Marking=:Marking, InputFile=:InputFile WHERE HomeworkId=:HomeworkId;');
 
-        $homeworkUpdateQuery->execute([
-            ':Name' => $_POST['Name'],
-            ':Description' => $_POST['Description'],
-            ':Marking' => $_POST['Marking'],
-            ':InputFile' => $inputFile,
-            ':HomeworkId' => $_POST['HomeworkId']
-        ]);
 
-        $seminarHomeworkUpdateQuery = $db->prepare('UPDATE SeminarHomework SET Visible=:Visible WHERE HomeworkId=:HomeworkId;');
-
-        $seminarHomeworkUpdateQuery->execute([
-            ':Visible' => $visible,
-            ':HomeworkId' => $_POST['HomeworkId']
-        ]);
-
-        header('Location: '.$_SESSION['rdrurl']);
-        exit();
     }
 }
 
@@ -134,11 +158,13 @@ if (isset($_POST['HomeworkId'])) {
 <form method="post" enctype="multipart/form-data" name="homeworkForm">
                 <div class="field">
                     <label for="Name">Name: </label>
-                    <input type="text" name="Name" id="Name" placeholder="ex. Hello World!" pattern="^\S+(\s)?\S*$" value="<?php echo htmlspecialchars($homework['Name']) ?>" required>
+                    <input type="text" name="Name" id="Name" placeholder="ex. Hello World!" pattern="^\S+(\s)?\S*$" value="<?php if (!empty($errors)) echo htmlspecialchars($_POST['Name']); else echo htmlspecialchars($homework['Name']) ?>" required>
+                    <?php if (!empty($errors['Name'])) echo '<div class="text-danger">' . $errors['Name'] . '</div>'?>
                 </div>
                 <div class="field">
                     <label for="Description" >Description:</label>
-                    <textarea name="Description" id="Description" cols="40" rows="6" placeholder="ex. Print \'Hello world!\' on standard output." required><?php echo htmlspecialchars($homework['Description']) ?></textarea>
+                    <textarea name="Description" id="Description" cols="40" rows="6" placeholder="ex. Print \'Hello world!\' on standard output." required><?php if (!empty($errors)) echo htmlspecialchars($_POST['Description']); else echo htmlspecialchars($homework['Description']) ?></textarea>
+                    <?php if (!empty($errors['Description'])) echo '<div class="text-danger">' . $errors['Description'] . '</div>'?>
                 </div>
                 <div class="field">
                     <label for="Marking">Marking:</label>
@@ -152,8 +178,8 @@ if (isset($_POST['HomeworkId'])) {
         "weight": "0.5"
       }
   ]
-}'  required><?php echo $homework['Marking'] ?></textarea>
-                    <div class="text-danger" style="display: none"></div>
+}'  required><?php if (!empty($errors)) echo htmlspecialchars($_POST['Marking']); else echo $homework['Marking'] ?></textarea>
+                    <div class="text-danger" <?php if (!empty($errors['Marking'])) echo '>' . $errors['Marking']; else echo 'style="display: none">'?></div>
                 </div>
                 <div class="field">
                     <label for="InputFile">Input: </label>
@@ -161,13 +187,18 @@ if (isset($_POST['HomeworkId'])) {
                 </div>
                 <div class="field">
                     <label for="Visible">Visible: </label>
-                    <input type="checkbox" name="Visible" id="Visible" value="visible"
- <?php if($homework['Visible']) {
-    echo 'checked';
-}?>
+                    <input type="checkbox" name="Visible" id="Visible" value="true"
+ <?php if (!empty($errors) && $_POST['Visible'] == 'true') echo 'checked';
+ else {
+     if($homework['Visible']) {
+         echo 'checked';
+     }
+ }
+ ?>
             >
                 </div>
                 <input type="hidden" name="HomeworkId" id="HomeworkId" value="<?php echo htmlspecialchars($_POST['HomeworkId']) ?>">
+                <input type="hidden" name="Seminar" id="Seminar" value="<?php echo $seminarInfo?>">
     <?php
         if (!$General) {
             echo '<input type="hidden" name="General" id="General" value="' . $General . '">';

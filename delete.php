@@ -29,6 +29,15 @@ if (isset($_POST['HomeworkId'])) {
         exit();
     }
 
+    $homework = $homeworkQuery->fetch(PDO::FETCH_ASSOC);
+    $path = '';
+
+    if ($homework['General']) {
+        $path = $_SESSION['rdrurl'];
+    } else {
+        $path = substr($_SESSION['rdrurl'], 0, strpos($_SESSION['rdrurl'], '/homework'));
+    }
+
     $queryString = 'DELETE FROM Homework WHERE Homework.HomeworkId=:HomeworkId AND Homework.AddedBy=:UserId LIMIT 1;';
 
     $homeworkDeleteQuery = $db->prepare($queryString);
@@ -38,6 +47,6 @@ if (isset($_POST['HomeworkId'])) {
         ':UserId' => $_SESSION['UserId']
     ]);
 
-    header('Location: ' . substr($_SESSION['rdrurl'], 0, strpos($_SESSION['rdrurl'], '/homework')));
+    header('Location: ' . $path);
     exit();
 }

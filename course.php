@@ -41,6 +41,11 @@ if ($courseDataQuery->rowCount()!=1) {
 
 $courseData = $courseDataQuery->fetch(PDO::FETCH_ASSOC);
 
+if ($courseData['Guarantor'] != $_SESSION['UserId']) {
+    header('Location: /error/404');
+    exit();
+}
+
 $seminarsQuery = $db->prepare('SELECT SeminarId FROM Seminar WHERE TeachedCourseId=:TeachedCourseId;');
 
 $seminarsQuery->execute([
@@ -51,6 +56,8 @@ $seminars = $seminarsQuery->fetchAll(PDO::FETCH_ASSOC);
 
 if (!empty($_POST)) {
     if (isset($_POST['addHomework']) && $_POST['addHomework'] = 'true') {
+        json_decode($_POST['Marking']);
+
         if (empty(trim($_POST['Name']))) {
             $errors['Name'] = 'You have to set some name of homework.';
         }
@@ -59,9 +66,18 @@ if (!empty($_POST)) {
         }
         if (empty(trim($_POST['Marking']))) {
             $errors['Marking'] = 'You have to set some marking for homework.';
+        } elseif (json_last_error() !== JSON_ERROR_NONE) {
+            $errors['Marking'] = 'Invalid JSON format.';
+        } elseif (!preg_match('/^{\s*"maximum":\s*[1-9]+,\s*"marking":\s*\[\s*({"text":\s*".*",\s*"weight":\s*"\d(.\d+)?"\s*},\s*)*(?!,)\s*({"text":\s*".*",\s*"weight":\s*"\d(.\d+)?"\s*}\s*)\s*]\s*}$/' , $_POST['Marking'])) {
+            $errors['Marking'] = 'Does not match wanted JSON structure.';
         }
-//        var_dump(array($_POST['Name'],$_POST['Description'], $_POST['Marking'], $_SESSION['UserId'], $_POST['InputFile']) );
+
         if (empty($errors)) {
+            $inputFile = null;
+            if (isset($_FILES['InputFile']) && !empty($_FILES['InputFile']['name'])) {
+                $inputFile = substr(file_get_contents($_FILES['InputFile']['tmp_name']), 0, $_FILES['InputFile']['size']);
+            }
+
             $visible = 0;
             $db->beginTransaction();
             $saveHomeworkQuery = $db->prepare('INSERT INTO Homework (Name, Description, Marking, AddedBy, InputFile, General)
@@ -71,7 +87,7 @@ if (!empty($_POST)) {
                 ':Description' => $_POST['Description'],
                 ':Marking' => $_POST['Marking'],
                 ':AddedBy' => $_SESSION['UserId'],
-                ':InputFile' => $_POST['InputFile']
+                ':InputFile' => $inputFile
             ]);
 
             $homeworkId = $db->lastInsertId();
@@ -97,7 +113,6 @@ if (!empty($_POST)) {
         }
     }
 }
-
 ?>
 <div class="breadcrumb_div">
     <div class="breadcrumbPath">
@@ -113,16 +128,18 @@ if (!empty($_POST)) {
 <div class="checkbox_box">
     <div class="field">
         <label for="homework">Add homework</label>
-        <input type="checkbox" id="homework" class="homework clickableBox" >
-        <div id="homeworkSubMenu" style="display: none">
-            <form method="post" name="homeworkForm">
+        <input type="checkbox" id="homework" class="homework clickableBox" <?php if (!empty($errors)) echo 'checked';?>>
+        <div id="homeworkSubMenu"  <?php if (!empty($errors)) echo 'style="display: block"'; else echo 'style="display: none"';?>>
+            <form method="post" enctype="multipart/form-data" name="homeworkForm">
                 <div class="field">
                     <label for="Name">Name: </label>
-                    <input type="text" name="Name" id="Name" placeholder="ex. Hello World!" pattern="^\S+(\s)?\S*$" required>
+                    <input type="text" name="Name" id="Name" placeholder="ex. Hello World!" pattern="^\S+(\s)?\S*$" required <?php if (!empty($errors)) echo 'value="'.htmlspecialchars($_POST['Name']).'"';?>>
+                    <?php if (!empty($errors['Name'])) echo '<div class="text-danger">' . $errors['Name'] . '</div>'?>
                 </div>
                 <div class="field">
                     <label for="Description" >Description:</label>
-                    <textarea name="Description" id="Description" cols="40" rows="6" placeholder="ex. Print 'Hello world!' on standard output." required></textarea>
+                    <textarea name="Description" id="Description" cols="40" rows="6" placeholder="ex. Print 'Hello world!' on standard output." required><?php if (!empty($errors)) echo htmlspecialchars($_POST['Description']);?></textarea>
+                    <?php if (!empty($errors['Description'])) echo '<div class="text-danger">' . $errors['Description'] . '</div>'?>
                 </div>
                 <div class="field">
                     <label for="Marking">Marking:</label>
@@ -136,16 +153,16 @@ if (!empty($_POST)) {
         "weight": "0.5"
       }
   ]
-}'  required></textarea>
-                    <div class="text-danger" style="display: none"></div>
+}'  required ><?php if (!empty($errors)) echo htmlspecialchars($_POST['Marking'])?></textarea>
+                    <div class="text-danger" <?php if (!empty($errors['Marking'])) echo '>' . $errors['Marking']; else echo 'style="display: none">'?></div>
                 </div>
                 <div class="field">
-                    <label for="Stdin">Stdin: </label>
-                    <input type="file" name="Stdin" id="Stdin">
+                    <label for="InputFile">Input: </label>
+                    <input type="file" name="InputFile" id="InputFile">
                 </div>
                 <div class="field">
                     <label for="Visible">Visibility: </label>
-                    <input type="checkbox" name="Visible" id="Visible" value="true" >
+                    <input type="checkbox" name="Visible" id="Visible" value="true" <?php if (!empty($errors) && $_POST['Visible'] == 'true') echo 'checked';?>>
                 </div>
                 <button type="submit" name="addHomework" value="true" >Add homework</button>
             </form>
@@ -192,6 +209,13 @@ foreach ($homeworksData as $homeworkData) {
 echo '</div>';
 include __DIR__ . '/inc/footer.php';
 
+/**
+ * @param $data
+ * @param $errors
+ * @param $index
+ * @return void
+ * Unused function due to usage of text area
+ */
 function errorHandler ($data, $errors, $index) {
     echo 'value="'.htmlspecialchars($data).'">';
 

@@ -77,7 +77,7 @@ if ($_SESSION['Student'] == 1 && $homeworkData['Visible'] != 1) {
 }
 
 if (!empty($homeworkData)) {
-    $seminar = array("SeminarId" => $homeworkData["SeminarId"], 'Day' => $homeworkData['Day'], 'TimeStart' => $homeworkData['TimeStart'], 'TimeEnd' => $homeworkData['TimeEnd'], "homeworks" => array($homeworkData));
+    $seminar = array("SeminarId" => $homeworkData["SeminarId"], 'TeacherId' => $homeworkData['TeacherId'], 'Day' => $homeworkData['Day'], 'TimeStart' => $homeworkData['TimeStart'], 'TimeEnd' => $homeworkData['TimeEnd'], "homeworks" => array($homeworkData));
     $course = new \classes\Course($homeworkData['Ident'], $homeworkData['Year'], $homeworkData['Semester'], $seminar, $homeworkData['GuarantorId']);
 }
 if (is_null($course->getSeminar()->getHomeworks()[0])) {
@@ -189,7 +189,7 @@ if ($_FILES["myfile"] != null) {
 
 
         shell_exec($curlCommand);
-        shell_exec($stopCommand);
+//        shell_exec($stopCommand);
     }
     header('Location: ' . $_SERVER['REQUEST_URI']);
 }
@@ -240,21 +240,14 @@ if (isset($_SESSION["Student"]) && $_SESSION["Student"] == 1) {
     echo '<div class="submittedHomeworks">';
 }
 
-
 if ($needRefresh) {
     echo '<div id="refresh"><div class="timer">30</div><a href="'.$_SESSION['rdrurl'].'"><input type="submit" value="Refresh"></a></div>';
 }
-
-//var_dump($submittedHomeworks);
-
-
 
 printSubmittedHomeworks($submittedHomeworks);
 
 echo '</div>';
 include __DIR__ . '/inc/footer.php';
-
-
 
 function printSubmittedHomeworks($submittedHomeworks) {
     foreach ($submittedHomeworks as $username => $usernameSubmittedHomeworks) {

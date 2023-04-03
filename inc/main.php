@@ -28,7 +28,7 @@ $courses = array();
 echo '<div class="courses">';
 if (!empty($coursesData)) {
     foreach ($coursesData as $courseData) {
-        $seminarArr = array("SeminarId" => $courseData["SeminarId"], 'Day' => $courseData['Day'], 'TimeStart' => $courseData['TimeStart'], 'TimeEnd' => $courseData['TimeEnd'], "homeworks" => null);
+        $seminarArr = array("SeminarId" => $courseData["SeminarId"], 'TeacherId' => $courseData['TeacherId'], 'Day' => $courseData['Day'], 'TimeStart' => $courseData['TimeStart'], 'TimeEnd' => $courseData['TimeEnd'], "homeworks" => null);
         $courses[$courseData['Year']][$courseData['Semester']][$courseData['Ident']][] = new classes\Course($courseData['Ident'], $courseData['Year'], $courseData['Semester'], $seminarArr, $courseData['Guarantor']);
     }
     foreach ($courses as $year => $yearCourses) {
