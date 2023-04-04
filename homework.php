@@ -214,12 +214,13 @@ echo '</a>
         <div class="breadcrumbPath">
             <p>' . $course->getSeminar()->getHomeworks()[0]->getName() . '</p>
         </div>
-    </div>';
+    </div>
+    <h1>Homework</h1><div class="content">';
 
 $course->getSeminar()->getHomeworks()[0]->printHomework();
 
 if ($_SESSION['UserId'] == $course->getSeminar()->getHomeworks()[0]->getAddedBy() && !$course->getSeminar()->getHomeworks()[0]->isGeneral()) {
-    echo '<form action="'.$_SESSION['rdrurl'].'/edit" method="post">
+    echo '<div class="changeHomework"><form action="'.$_SESSION['rdrurl'].'/edit" method="post">
 <input type="hidden" name="HomeworkId" id="HomeworkId" value="' . $course->getSeminar()->getHomeworks()[0]->getHomeworkId() . '">
 <input type="hidden" name="Seminar" id="Seminar" value="' . htmlspecialchars($seminarInfo) . '">
 <input type="hidden" name="General" id="General" value="0">
@@ -228,7 +229,7 @@ if ($_SESSION['UserId'] == $course->getSeminar()->getHomeworks()[0]->getAddedBy(
 <form action="'.$_SESSION['rdrurl'].'/delete" method="post">
 <input type="hidden" name="HomeworkId" id="HomeworkId" value="' . $homeworkData['HomeworkId'] . '">
 <button type="submit">Delete</button>
-</form>';
+</form></div>';
 }
 
 if (isset($_SESSION["Student"]) && $_SESSION["Student"] == 1) {
@@ -243,25 +244,28 @@ if (isset($_SESSION["Student"]) && $_SESSION["Student"] == 1) {
 if ($needRefresh) {
     echo '<div id="refresh"><div class="timer">30</div><a href="'.$_SESSION['rdrurl'].'"><input type="submit" value="Refresh"></a></div>';
 }
-
+echo '<h2>Students</h2>';
 printSubmittedHomeworks($submittedHomeworks);
 
-echo '</div>';
+echo '</div></div>';
 include __DIR__ . '/inc/footer.php';
 
 function printSubmittedHomeworks($submittedHomeworks) {
     foreach ($submittedHomeworks as $username => $usernameSubmittedHomeworks) {
         if (isset($_SESSION["Teacher"]) && $_SESSION["Teacher"] == 1) {
-            echo '<div class="homeworksUsername"><div class="username clickableSibling">' . $username . '</div><div class="submittedHomeworks" style="display: none;">';
+            echo '<div class="homeworksUsername"><div class="username clickableSibling"><svg class="triangle" height="10" width="10">
+  <polygon points="0,0 0,10 10,5" style="fill:black;" />
+  Sorry, your browser does not support inline SVG.
+</svg><div class="studentUsername">' . $username . '</div></div><div class="submittedHomeworks" style="display: none;">';
         }
         foreach ($usernameSubmittedHomeworks as $submittedHomework) {
 
-            echo '<div class="submittedHomework">';
+            echo '<div class="submittedHomework"><div class="submittedHomeworkData">';
             echo '<div class="submittedHomeworkTime">' . $submittedHomework->getDateTime() . '</div>';
-            echo '<div class="submittedHomeworkResult">' . $submittedHomework->getResult() . '</div>';
-            echo "<button type='submit' onclick='window.open(\"/download.php?fileId=" . $submittedHomework->getSubmittedHomeworkId() . "&type=submitted\");'>Submitted file</button><br>";
+            echo '<div class="submittedHomeworkResult">' . $submittedHomework->getResult() . '</div></div>';
+            echo "<div class='files'><button type='submit' onclick='window.open(\"/download.php?fileId=" . $submittedHomework->getSubmittedHomeworkId() . "&type=submitted\");'>Submitted file</button>";
             if (isset($_SESSION["Teacher"]) && $_SESSION["Teacher"] == 1) {
-                echo "<button type='submit' onclick='window.open(\"/download.php?fileId=" . $submittedHomework->getSubmittedHomeworkId() . "&type=result\");'>Result file</button><br>";
+                echo "<button type='submit' onclick='window.open(\"/download.php?fileId=" . $submittedHomework->getSubmittedHomeworkId() . "&type=result\");'>Result file</button></div>";
             }
             echo '</div>';
 

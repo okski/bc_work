@@ -138,19 +138,16 @@ echo '<div class="breadcrumb_div">
             <div class="breadcrumbPath">
                 <p> ' . 'Seminar (' . $seminarInfo . ')' . '</p>
             </div>
-    </div>';
+    </div>
+    <h1>Seminar</h1>
+    <div class="content">';
 
-if (isset($_SESSION["Student"]) && $_SESSION["Student"] == 1) {
-    echo $seminar->toString('Student');
-}elseif (isset($_SESSION["Teacher"]) && $_SESSION["Teacher"] == 1) {
-    echo $seminar->toString('Teacher');
-}
+
 
 if ($_SESSION["Teacher"] == 1 && $seminar->getTeacherId() == $_SESSION['UserId']) {
     echo $addHomeworkHtml = '<div class="checkbox_box">
-    <div class="field">
         <label for="homework">Add homework</label>
-        <input type="checkbox" id="homework" class="homework clickableBox" ';
+        <input type="checkbox" id="homework" class="clickableBox" ';
     if (!empty($errors)) echo 'checked';
     echo '>
         <div id="homeworkSubMenu" ';
@@ -205,7 +202,16 @@ if ($_SESSION["Teacher"] == 1 && $seminar->getTeacherId() == $_SESSION['UserId']
             </form>
         </div>
     </div>
-</div>';
+
+<div class="homeworksHeader">List of homeworks</div>';
 }
+
+if (isset($_SESSION["Student"]) && $_SESSION["Student"] == 1) {
+    echo $seminar->toString('Student');
+}elseif (isset($_SESSION["Teacher"]) && $_SESSION["Teacher"] == 1) {
+    echo $seminar->toString('Teacher');
+}
+
+echo '</div>';
 
 include __DIR__ . '/inc/footer.php';

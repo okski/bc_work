@@ -124,36 +124,40 @@ if (!empty($_POST)) {
     </div>
 </div>
 
+<h1>Course</h1>
 
-<div class="checkbox_box">
-    <div class="field">
+<div class="content">
+    <div class="checkbox_box">
         <label for="homework">Add homework</label>
-        <input type="checkbox" id="homework" class="homework clickableBox" <?php if (!empty($errors)) echo 'checked';?>>
+        <input type="checkbox" id="homework" class="clickableBox" <?php if (!empty($errors)) echo 'checked';?>>
         <div id="homeworkSubMenu"  <?php if (!empty($errors)) echo 'style="display: block"'; else echo 'style="display: none"';?>>
             <form method="post" enctype="multipart/form-data" name="homeworkForm">
                 <div class="field">
                     <label for="Name">Name: </label>
                     <input type="text" name="Name" id="Name" placeholder="ex. Hello World!" pattern="^\S+(\s)?\S*$" required <?php if (!empty($errors)) echo 'value="'.htmlspecialchars($_POST['Name']).'"';?>>
+                    <span>*</span>
                     <?php if (!empty($errors['Name'])) echo '<div class="text-danger">' . $errors['Name'] . '</div>'?>
                 </div>
                 <div class="field">
                     <label for="Description" >Description:</label>
                     <textarea name="Description" id="Description" cols="40" rows="6" placeholder="ex. Print 'Hello world!' on standard output." required><?php if (!empty($errors)) echo htmlspecialchars($_POST['Description']);?></textarea>
+                    <span>*</span>
                     <?php if (!empty($errors['Description'])) echo '<div class="text-danger">' . $errors['Description'] . '</div>'?>
                 </div>
                 <div class="field">
                     <label for="Marking">Marking:</label>
                     <textarea name="Marking" id="Marking" cols="40" rows="12" placeholder='ex. {
-  "maximum": 1,
-  "marking": [
-      {"text": "Hello World!",
-        "weight": "0.5"
-      },
-      {"text": "How are you?",
-        "weight": "0.5"
-      }
-  ]
-}'  required ><?php if (!empty($errors)) echo htmlspecialchars($_POST['Marking'])?></textarea>
+        "maximum": 1,
+        "marking": [
+          {"text": "Hello World!",
+            "weight": "0.5"
+          },
+          {"text": "How are you?",
+            "weight": "0.5"
+          }
+        ]
+    }'  required ><?php if (!empty($errors)) echo htmlspecialchars($_POST['Marking'])?></textarea>
+                    <span>*</span>
                     <div class="text-danger" <?php if (!empty($errors['Marking'])) echo '>' . $errors['Marking']; else echo 'style="display: none">'?></div>
                 </div>
                 <div class="field">
@@ -164,13 +168,15 @@ if (!empty($_POST)) {
                     <label for="Visible">Visibility: </label>
                     <input type="checkbox" name="Visible" id="Visible" value="true" <?php if (!empty($errors) && $_POST['Visible'] == 'true') echo 'checked';?>>
                 </div>
+                <div class="field">
+                    <span>*</span> required fields
+                </div>
                 <button type="submit" name="addHomework" value="true" >Add homework</button>
             </form>
         </div>
     </div>
-</div>
-<br>
-<div>list of homeworks</div>
+
+<div class="homeworksHeader">List of homeworks</div>
 
 <?php
 $values = array_map('array_pop', $seminars);
@@ -192,9 +198,10 @@ if (empty($homeworksData)) {
 
 echo '<div class="homeworks">';
 foreach ($homeworksData as $homeworkData) {
-    echo '<div class="homework">
+    echo '<div class="homework homeworkCourse">
 <div class="name">' . htmlspecialchars($homeworkData['Name']) . '</div>
 <div class="shortDescription">' . htmlspecialchars(substr($homeworkData['Description'], 0, 25)) . '</div>
+<div class="changeHomework">
 <form action="'.$_SESSION['rdrurl'].'/edit" method="post">
 <input type="hidden" name="HomeworkId" id="HomeworkId" value="' . $homeworkData['HomeworkId'] . '">
 <button type="submit">Edit</button>
@@ -203,10 +210,11 @@ foreach ($homeworksData as $homeworkData) {
 <input type="hidden" name="HomeworkId" id="HomeworkId" value="' . $homeworkData['HomeworkId'] . '">
 <button type="submit">Delete</button>
 </form>
+</div>
 </div>';
 }
 
-echo '</div>';
+echo '</div></div>';
 include __DIR__ . '/inc/footer.php';
 
 /**

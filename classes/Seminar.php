@@ -116,9 +116,7 @@ class Seminar {
             if (!empty($this->Homeworks)) {
                 foreach ($this->Homeworks as $homework) {
                     if (!is_null($homework)) {
-                        if (!$homework->isGeneral()) {
-                            $result = $result . $homework->__toString();
-                        }
+                        $result = $result . $homework->__toString();
                     }
                 }
             } else {

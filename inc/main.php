@@ -25,7 +25,7 @@ $coursesDataQuery->execute([
 $coursesData = $coursesDataQuery->fetchAll(PDO::FETCH_ASSOC);
 $courses = array();
 
-echo '<div class="courses">';
+echo '<h1>Home</h1><div class="courses">';
 if (!empty($coursesData)) {
     foreach ($coursesData as $courseData) {
         $seminarArr = array("SeminarId" => $courseData["SeminarId"], 'TeacherId' => $courseData['TeacherId'], 'Day' => $courseData['Day'], 'TimeStart' => $courseData['TimeStart'], 'TimeEnd' => $courseData['TimeEnd'], "homeworks" => null);
@@ -42,9 +42,12 @@ if (!empty($coursesData)) {
                 if (isset($_SESSION["Student"]) && $_SESSION["Student"] == 1) {
                     echo $identCourses[0]->toString('Student');
                 }elseif (isset($_SESSION["Teacher"]) && $_SESSION["Teacher"] == 1) {
-                    echo '<div class="course clickable" id="'.$ident.'"><div class="">' . $ident . '</div><div class="seminars" style="display: none;">';
+                    echo '<div class="course" id="'.$ident.'"><div class="clickable"><div><svg class="triangle" height="10" width="10">
+  <polygon points="0,0 0,10 10,5" style="fill:black;" />
+  Sorry, your browser does not support inline SVG.
+</svg></div><div class="ident">' . $ident . '</div></div><div class="seminars" style="display: none;">';
                     if (!is_null($identCourses[0]->getGuarantorId()) && $identCourses[0]->getGuarantorId() == $_SESSION['UserId']) {
-                        echo '<a href="/course/' . $link  . '">as Guarantor</a>';
+                        echo '<a href="/course/' . $link  . '" class="guarantor">as Guarantor</a>';
                     }
                     foreach ($identCourses as $course) {
                         if ($course->getSeminar()->getSeminarId() != 0) {

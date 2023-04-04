@@ -155,7 +155,9 @@ if (isset($_POST['HomeworkId'])) {
     </div>
 </div>
 
-<form method="post" enctype="multipart/form-data" name="homeworkForm">
+<h1>Edit</h1>
+<div class="content">
+    <form method="post" enctype="multipart/form-data" name="homeworkForm">
                 <div class="field">
                     <label for="Name">Name: </label>
                     <input type="text" name="Name" id="Name" placeholder="ex. Hello World!" pattern="^\S+(\s)?\S*$" value="<?php if (!empty($errors)) echo htmlspecialchars($_POST['Name']); else echo htmlspecialchars($homework['Name']) ?>" required>
@@ -169,16 +171,16 @@ if (isset($_POST['HomeworkId'])) {
                 <div class="field">
                     <label for="Marking">Marking:</label>
                     <textarea name="Marking" id="Marking" cols="40" rows="12" placeholder='ex. {
-  "maximum": 1,
-  "marking": [
-      {"text": "Hello World!",
-        "weight": "0.5"
-      },
-      {"text": "How are you?",
-        "weight": "0.5"
-      }
-  ]
-}'  required><?php if (!empty($errors)) echo htmlspecialchars($_POST['Marking']); else echo $homework['Marking'] ?></textarea>
+                      "maximum": 1,
+                      "marking": [
+                          {"text": "Hello World!",
+                            "weight": "0.5"
+                          },
+                          {"text": "How are you?",
+                            "weight": "0.5"
+                          }
+                      ]
+                    }'  required><?php if (!empty($errors)) echo htmlspecialchars($_POST['Marking']); else echo $homework['Marking'] ?></textarea>
                     <div class="text-danger" <?php if (!empty($errors['Marking'])) echo '>' . $errors['Marking']; else echo 'style="display: none">'?></div>
                 </div>
                 <div class="field">
@@ -188,6 +190,7 @@ if (isset($_POST['HomeworkId'])) {
                 <div class="field">
                     <label for="Visible">Visible: </label>
                     <input type="checkbox" name="Visible" id="Visible" value="true"
+
  <?php if (!empty($errors) && $_POST['Visible'] == 'true') echo 'checked';
  else {
      if($homework['Visible']) {
@@ -206,6 +209,6 @@ if (isset($_POST['HomeworkId'])) {
     ?>
                 <button type="submit" name="editHomework" value="true" >Edit</button>
             </form>
-
+    </div>
 <?php
 include __DIR__ . '/inc/footer.php';

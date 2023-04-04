@@ -1,0 +1,117 @@
+.coursesYear {
+    margin: 0 0 0.5em 0.5em;
+}
+
+.year {
+    font-weight: bolder;
+}
+
+.semester {
+    font-weight: bold;
+    margin-top: 0.5em;
+}
+
+.course {
+    margin-top: 0.25em;
+}
+
+.seminars {
+    display: block;
+}
+
+.seminar, .guarantor {
+    margin-top: 0.25em;
+    margin-left: 1em;
+}
+
+.clickable, .clickableSibling {
+    cursor: pointer;
+    display: inline-flex;
+}
+
+.studentUsername {
+    min-height: 15px;
+}
+
+.triangle {
+    margin: auto clamp(0.1em, 0.25em, 0.5em) auto auto;
+}
+
+.homeworksUsername {
+    min-height: 20px;
+    margin-top: 0.25em;
+}
+
+.submittedHomework {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5em 0.5em 0.25em 0.5em;
+}
+
+.files {
+    height: 50%;
+    display: flex;
+    text-align: right;
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+.submittedHomeworkResult:before {
+    content: "Result: ";
+}
+
+#homeworkSubMenu {
+    margin-top: 0.5em;
+}
+
+#homeworkSubMenu > form {
+    margin-top: 1em;
+    margin-left: 1em;
+}
+
+.field {
+    margin-top: 1em;
+    display: flex;
+}
+
+.field > label {
+    margin-right: 0.5em;
+}
+
+#homeworkSubMenu > form > button, form[name="homeworkForm"] > button {
+    margin-top: 1em;
+    /*margin-bottom: 1em;*/
+}
+
+.homework {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.25em 0.5em 0.25em 0.5em;
+}
+
+.changeHomework {
+    display: inline-flex;
+}
+
+.homeworks div.homeworkCourse:nth-child(even), .submittedHomeworks div.submittedHomework:nth-child(even) {
+    background-color: #77ffa1;
+}
+
+.homeworksHeader {
+    margin-top: 1em;
+    font-weight: bold;
+}
+
+.content {
+    margin-left: 1.25em;
+    margin-right: 1em;
+}
+
+.homeworkName {
+    margin: 0.5em 0 0.25em 0.25em;
+}
+
+.homeworkDescription {
+    margin: 0.5em 0 0.25em 0.25em;
+}

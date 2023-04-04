@@ -113,7 +113,7 @@ class Homework {
     }
 
     public function printHomework() {
-        echo "<div class='homework'>
+        echo "<div class='homeworkInfo'>
                 <div class='homeworkName'>" . $this->Name . "</div>
                 <div class='homeworkDescription'>" . $this->Description . "</div></div>";
     }

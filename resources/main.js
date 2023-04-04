@@ -1,13 +1,33 @@
+function changeVisibility(param, b) {
+    let nextElementSibling = param.nextElementSibling;
+    if (nextElementSibling.style.display === "none") {
+        nextElementSibling.style.display = "block";
+    } else {
+        nextElementSibling.style.display = "none";
+    }
+
+    let firstChild = param.firstElementChild.firstElementChild;
+    if (nextElementSibling.style.display === "none") {
+        if (b) {
+            firstChild.firstElementChild.attributes['points'].value = '0,0 0,10 10,5';
+        } else {
+            firstChild.attributes['points'].value = '0,0 0,10 10,5';
+        }
+    } else {
+        if (c) {
+            firstChild.firstElementChild.attributes['points'].value = '0,0 10,0 5,10';
+        } else {
+            firstChild.attributes['points'].value = '0,0 10,0 5,10';
+        }
+    }
+
+}
+
 let clickableElements = document.querySelectorAll('.clickable');
 
 for (let i=0; i<clickableElements.length; i++) {
     clickableElements[i].addEventListener('click', function () {
-        let lastChild = this.lastChild;
-        if (lastChild.style.display === "none") {
-            lastChild.style.display = "block";
-        } else {
-            lastChild.style.display = "none";
-        }
+        changeVisibility(this, true);
     });
 }
 
@@ -15,12 +35,7 @@ let clickableElementsSiblings = document.querySelectorAll('.clickableSibling');
 
 for (let i=0; i<clickableElementsSiblings.length; i++) {
     clickableElementsSiblings[i].addEventListener('click', function () {
-        let nextElementSibling = this.nextElementSibling;
-        if (nextElementSibling.style.display === "none") {
-            nextElementSibling.style.display = "block";
-        } else {
-            nextElementSibling.style.display = "none";
-        }
+        changeVisibility(this, false)
     });
 }
 
