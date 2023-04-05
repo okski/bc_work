@@ -25,7 +25,7 @@ $coursesDataQuery->execute([
 $coursesData = $coursesDataQuery->fetchAll(PDO::FETCH_ASSOC);
 $courses = array();
 
-echo '<h1>Home</h1><div class="courses">';
+echo '<h1>Home</h1><div class="content"><div class="courses">';
 if (!empty($coursesData)) {
     foreach ($coursesData as $courseData) {
         $seminarArr = array("SeminarId" => $courseData["SeminarId"], 'TeacherId' => $courseData['TeacherId'], 'Day' => $courseData['Day'], 'TimeStart' => $courseData['TimeStart'], 'TimeEnd' => $courseData['TimeEnd'], "homeworks" => null);
@@ -35,10 +35,10 @@ if (!empty($coursesData)) {
         $link = substr($year, 0, 4) . '/';
         echo '<div class="coursesYear"><div class="year">' . $year . '</div>';
         foreach ($yearCourses as $semester => $semesterCourses) {
-            $link = $link . $semester . '/';
+            $linkYear = $link . $semester . '/';
             echo '<div class="semester">' . $semester . '</div>';
             foreach ($semesterCourses as $ident => $identCourses) {
-                $link = $link . $ident;
+                $linkSemester = $linkYear . $ident;
                 if (isset($_SESSION["Student"]) && $_SESSION["Student"] == 1) {
                     echo $identCourses[0]->toString('Student');
                 }elseif (isset($_SESSION["Teacher"]) && $_SESSION["Teacher"] == 1) {
@@ -47,7 +47,7 @@ if (!empty($coursesData)) {
   Sorry, your browser does not support inline SVG.
 </svg></div><div class="ident">' . $ident . '</div></div><div class="seminars" style="display: none;">';
                     if (!is_null($identCourses[0]->getGuarantorId()) && $identCourses[0]->getGuarantorId() == $_SESSION['UserId']) {
-                        echo '<a href="/course/' . $link  . '" class="guarantor">as Guarantor</a>';
+                        echo '<a href="/course/' . $linkSemester  . '" class="guarantor">as Guarantor</a>';
                     }
                     foreach ($identCourses as $course) {
                         if ($course->getSeminar()->getSeminarId() != 0) {
@@ -62,4 +62,4 @@ if (!empty($coursesData)) {
     }
     echo '</div>';
 }
-echo '</div>';
+echo '</div></div>';

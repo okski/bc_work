@@ -14,7 +14,7 @@ function changeVisibility(param, b) {
             firstChild.attributes['points'].value = '0,0 0,10 10,5';
         }
     } else {
-        if (c) {
+        if (b) {
             firstChild.firstElementChild.attributes['points'].value = '0,0 10,0 5,10';
         } else {
             firstChild.attributes['points'].value = '0,0 10,0 5,10';
@@ -103,7 +103,7 @@ function startTimer(duration, display) {
 if (document.getElementById('refresh') !== null) {
     window.onload = function () {
         let thirtySeconds = 29,
-            display = document.querySelector('#refresh').firstElementChild;
+            display = document.querySelector('#refresh').lastElementChild;
         startTimer(thirtySeconds, display);
     };
 }

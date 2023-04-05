@@ -1,0 +1,14 @@
+.seminar {
+    margin-top: 0.25em;
+}
+
+#refresh {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5em;
+    background-color: #ffa200;
+}
+
+#refresh .timer {
+    font-weight: bold;
+}

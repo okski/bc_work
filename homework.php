@@ -219,7 +219,7 @@ echo '</a>
 
 $course->getSeminar()->getHomeworks()[0]->printHomework();
 
-if ($_SESSION['UserId'] == $course->getSeminar()->getHomeworks()[0]->getAddedBy() && !$course->getSeminar()->getHomeworks()[0]->isGeneral()) {
+if ($_SESSION['UserId'] == $course->getSeminar()->getHomeworks()[0]->getAddedBy() && !$course->getSeminar()->getHomeworks()[0]->isGeneral() && checkValidDate($course)) {
     echo '<div class="changeHomework"><form action="'.$_SESSION['rdrurl'].'/edit" method="post">
 <input type="hidden" name="HomeworkId" id="HomeworkId" value="' . $course->getSeminar()->getHomeworks()[0]->getHomeworkId() . '">
 <input type="hidden" name="Seminar" id="Seminar" value="' . htmlspecialchars($seminarInfo) . '">
@@ -232,25 +232,42 @@ if ($_SESSION['UserId'] == $course->getSeminar()->getHomeworks()[0]->getAddedBy(
 </form></div>';
 }
 
+
+
 if (isset($_SESSION["Student"]) && $_SESSION["Student"] == 1) {
-    echo '<form id="uploadbanner" enctype="multipart/form-data" method="post" action="#">
+    if (checkValidDate($course)) {
+        echo '<form id="uploadbanner" enctype="multipart/form-data" method="post" action="#">
         <input id="fileupload" name="myfile" type="file" required />
         <input type="submit" value="submit" id="submit" />
     </form>';
-
+    }
+    echo '<h2>Submits</h2>';
+    if ($needRefresh) {
+        echo '<div id="refresh"><a href="'.$_SESSION['rdrurl'].'"><input type="submit" value="Refresh"></a><div class="timer">30</div></div>';
+    }
     echo '<div class="submittedHomeworks">';
+
+} elseif ($_SESSION["Teacher"] == 1) {
+    echo '<h2>Student\'s submits</h2>';
 }
 
-if ($needRefresh) {
-    echo '<div id="refresh"><div class="timer">30</div><a href="'.$_SESSION['rdrurl'].'"><input type="submit" value="Refresh"></a></div>';
-}
-echo '<h2>Students</h2>';
+
+
 printSubmittedHomeworks($submittedHomeworks);
 
 echo '</div></div>';
 include __DIR__ . '/inc/footer.php';
 
 function printSubmittedHomeworks($submittedHomeworks) {
+    if (empty($submittedHomeworks)) {
+        if ($_SESSION["Student"] == 1) {
+            echo '<div>You have not submitted yet.</div>';
+        } else {
+            echo '<div>None has been submitted yet.</div>';
+        }
+        return;
+    }
+
     foreach ($submittedHomeworks as $username => $usernameSubmittedHomeworks) {
         if (isset($_SESSION["Teacher"]) && $_SESSION["Teacher"] == 1) {
             echo '<div class="homeworksUsername"><div class="username clickableSibling"><svg class="triangle" height="10" width="10">
@@ -259,15 +276,14 @@ function printSubmittedHomeworks($submittedHomeworks) {
 </svg><div class="studentUsername">' . $username . '</div></div><div class="submittedHomeworks" style="display: none;">';
         }
         foreach ($usernameSubmittedHomeworks as $submittedHomework) {
-
             echo '<div class="submittedHomework"><div class="submittedHomeworkData">';
             echo '<div class="submittedHomeworkTime">' . $submittedHomework->getDateTime() . '</div>';
             echo '<div class="submittedHomeworkResult">' . $submittedHomework->getResult() . '</div></div>';
             echo "<div class='files'><button type='submit' onclick='window.open(\"/download.php?fileId=" . $submittedHomework->getSubmittedHomeworkId() . "&type=submitted\");'>Submitted file</button>";
             if (isset($_SESSION["Teacher"]) && $_SESSION["Teacher"] == 1) {
-                echo "<button type='submit' onclick='window.open(\"/download.php?fileId=" . $submittedHomework->getSubmittedHomeworkId() . "&type=result\");'>Result file</button></div>";
+                echo "<button type='submit' onclick='window.open(\"/download.php?fileId=" . $submittedHomework->getSubmittedHomeworkId() . "&type=result\");'>Result file</button>";
             }
-            echo '</div>';
+            echo '</div></div>';
 
         }
         if (isset($_SESSION["Teacher"]) && $_SESSION["Teacher"] == 1) {
@@ -275,4 +291,24 @@ function printSubmittedHomeworks($submittedHomeworks) {
         }
         echo '</div>';
     }
+}
+
+
+function checkValidDate($course): int {
+    if ($course->getSemester() == 'SS') {
+        if (strtotime('Jun ' . substr($course->getYear(), 0, 2) . substr($course->getYear(), -2, 2)) < strtotime(date('F Y')) ) {
+            return 0;
+        } else {
+            return 1;
+        }
+    } elseif ($course->getSemester() == 'WS') {
+        if (strtotime('Dec ' . substr($course->getYear(), 0, 4)) < strtotime(date('F Y')) ) {
+            return 0;
+        } else {
+            return 1;
+        }
+    } else {
+        return 0;
+    }
+
 }

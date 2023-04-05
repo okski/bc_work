@@ -18,7 +18,7 @@ html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockq
     display: block;
     text-align: right;
     float: right;
-    width: 50%;
+    width: 25%;
     padding-right: 1em;
 }
 
@@ -37,4 +37,57 @@ h2 {
 footer {
     margin-left: 0.5em;
     margin-top: 0.5em;
+}
+
+.content {
+    margin-left: 1.25em;
+    margin-right: 1em;
+}
+
+.year {
+    font-weight: bolder;
+}
+
+.semester {
+    font-weight: bold;
+    margin-top: 0.5em;
+}
+
+.coursesYear {
+    margin: 0 0 0.5em 0.5em;
+}
+
+.homework {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.25em 0.5em 0.25em 0.5em;
+}
+
+.homeworkName {
+    margin: 0.5em 0 0.25em 0.25em;
+}
+
+.homeworkDescription {
+    margin: 0.5em 0 0.25em 0.25em;
+}
+
+.submittedHomework {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5em 0.5em 0.25em 0.5em;
+}
+
+.submittedHomeworks div.submittedHomework:nth-child(even) {
+    background-color: #77ffa1;
+}
+
+.submittedHomeworkResult:before {
+    content: "Result: ";
+}
+
+.homeworksHeader {
+    font-size: 1.5em;
+    margin-top: 0.5em;
+    font-weight: bold;
 }

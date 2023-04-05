@@ -1,15 +1,4 @@
-.coursesYear {
-    margin: 0 0 0.5em 0.5em;
-}
 
-.year {
-    font-weight: bolder;
-}
-
-.semester {
-    font-weight: bold;
-    margin-top: 0.5em;
-}
 
 .course {
     margin-top: 0.25em;
@@ -42,22 +31,12 @@
     margin-top: 0.25em;
 }
 
-.submittedHomework {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.5em 0.5em 0.25em 0.5em;
-}
-
 .files {
     height: 50%;
     display: flex;
     text-align: right;
     margin-top: auto;
     margin-bottom: auto;
-}
-
-.submittedHomeworkResult:before {
-    content: "Result: ";
 }
 
 #homeworkSubMenu {
@@ -83,13 +62,6 @@
     /*margin-bottom: 1em;*/
 }
 
-.homework {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.25em 0.5em 0.25em 0.5em;
-}
-
 .changeHomework {
     display: inline-flex;
 }
@@ -98,20 +70,3 @@
     background-color: #77ffa1;
 }
 
-.homeworksHeader {
-    margin-top: 1em;
-    font-weight: bold;
-}
-
-.content {
-    margin-left: 1.25em;
-    margin-right: 1em;
-}
-
-.homeworkName {
-    margin: 0.5em 0 0.25em 0.25em;
-}
-
-.homeworkDescription {
-    margin: 0.5em 0 0.25em 0.25em;
-}

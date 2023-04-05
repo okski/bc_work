@@ -138,11 +138,14 @@ echo '<div class="breadcrumb_div">
             <div class="breadcrumbPath">
                 <p> ' . 'Seminar (' . $seminarInfo . ')' . '</p>
             </div>
-    </div>
-    <h1>Seminar</h1>
-    <div class="content">';
+    </div>';
+if ($_SESSION["Teacher"] == 1) {
+    echo '<h1>Seminar</h1><div class="content">';
+} elseif ($_SESSION["Student"] == 1) {
+    echo '<h1>Seminar</h1><div class="content"><div class="homeworksHeader">List of homeworks</div>';
+}
 
-
+//    echo '<div class="content">';
 
 if ($_SESSION["Teacher"] == 1 && $seminar->getTeacherId() == $_SESSION['UserId']) {
     echo $addHomeworkHtml = '<div class="checkbox_box">
