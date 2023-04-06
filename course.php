@@ -68,7 +68,7 @@ if (!empty($_POST)) {
             $errors['Marking'] = 'You have to set some marking for homework.';
         } elseif (json_last_error() !== JSON_ERROR_NONE) {
             $errors['Marking'] = 'Invalid JSON format.';
-        } elseif (!preg_match('/^{\s*"maximum":\s*[1-9]+,\s*"marking":\s*\[\s*({"text":\s*".*",\s*"weight":\s*"\d(.\d+)?"\s*},\s*)*(?!,)\s*({"text":\s*".*",\s*"weight":\s*"\d(.\d+)?"\s*}\s*)\s*]\s*}$/' , $_POST['Marking'])) {
+        } elseif (!preg_match('/^{\s*"maximum":\s*[1-9]+,\s*"marking":\s*\[\s*({\s*"text":\s*".*",\s*"weight":\s*"\d(.\d+)?"\s*},\s*)*(?!,)\s*({\s*"text":\s*".*",\s*"weight":\s*"\d(.\d+)?"\s*}\s*)\s*]\s*}$/' , $_POST['Marking'])) {
             $errors['Marking'] = 'Does not match wanted JSON structure.';
         }
 
@@ -134,7 +134,7 @@ if (!empty($_POST)) {
             <form method="post" enctype="multipart/form-data" name="homeworkForm">
                 <div class="field">
                     <label for="Name">Name: </label>
-                    <input type="text" name="Name" id="Name" placeholder="ex. Hello World!" pattern="^\S+(\s)?\S*$" required <?php if (!empty($errors)) echo 'value="'.htmlspecialchars($_POST['Name']).'"';?>>
+                    <input type="text" name="Name" id="Name" placeholder="ex. Hello World!" pattern="^\S+(\s*\S*)*?$" required <?php if (!empty($errors)) echo 'value="'.htmlspecialchars($_POST['Name']).'"';?>>
                     <span>*</span>
                     <?php if (!empty($errors['Name'])) echo '<div class="text-danger">' . $errors['Name'] . '</div>'?>
                 </div>
