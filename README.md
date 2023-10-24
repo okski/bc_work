@@ -1,4 +1,4 @@
-# Webapp for submition of programming homeworks
+# Webapp for submission of programming homeworks
 
 It is personal project which was intended as theme for bachelor thesis.
 
